@@ -22,7 +22,10 @@
 - [x] ローカルフォルダ名・ファイル内参照を `scc-s-fukui.github.io` に更新
 - [x] `scc-s-fukui` アカウントでのGitHubリポジトリ作成・push（https://github.com/scc-s-fukui/scc-s-fukui.github.io）
 - [x] 動作確認（公開URL https://scc-s-fukui.github.io/ でHome/Works表示・フェード画面遷移を確認、ビルドステータスbuilt）
+- [x] リポジトリを一時的に非公開（private）に変更（作業中のため。無料アカウントのユーザーサイトは非公開中Pagesがオフラインになる旨をユーザーに説明済み）
+- [x] 職務経歴書（`C:\Users\福井宗一郎\Desktop\職務経歴書_外部版\`で匿名化・技術スタック別に整理）の内容をworks.html（実績カード8件）・index.html（About/自己PR）へ反映しcommit・push（8505d96）
 - [x] 完了報告
 
 ## 保留・未対応事項
-- index.html / works.html 内の氏名・自己紹介・実績内容はダミーテキストのため、公開前に実内容へ差し替えが必要
+- `Your Name` プレースホルダー（logo・hero-title・footer）は未更新。実名表示にするかハンドルネームにするか要確認
+- リポジトリは現在非公開（private）。内容確認後、公開（public）に戻すタイミングはユーザー判断待ち（publicに戻さないとGitHub Pagesは配信されない）
