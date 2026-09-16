@@ -17,6 +17,5 @@
 - [x] 完了報告
 
 ## 保留・未対応事項
-- GitHub Pagesは作成時点で「building」ステータス。数分後に https://scc-soichiro-fukui-01.github.io/ で反映確認が必要
-- ブラウザプレビューのサンドボックス制限により、クリックによる画面遷移（フェード演出）の自動検証は未実施。実ブラウザまたは公開後のURLでの目視確認を推奨
+- 初回ビルド(commit 5541427)は「Page build failed」でerrored。2回目のpush(commit 54c7e8c)で再ビルドされbuiltに成功し、公開URLでHome→Worksのフェード遷移も実機確認済み(問題なし)
 - index.html / works.html 内の氏名・自己紹介・実績内容はダミーテキストのため、公開前に実内容へ差し替えが必要
