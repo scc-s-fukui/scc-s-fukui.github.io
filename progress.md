@@ -20,9 +20,9 @@
 - [x] ユーザーが誤アカウントのリポジトリを削除
 - [x] 正しいアカウント（scc-s-fukui）へのgh CLIログイン確認
 - [x] ローカルフォルダ名・ファイル内参照を `scc-s-fukui.github.io` に更新
-- [ ] `scc-s-fukui` アカウントでのGitHubリポジトリ作成・push
-- [ ] 動作確認（公開URLでHome/Works表示・画面遷移）
-- [ ] 完了報告
+- [x] `scc-s-fukui` アカウントでのGitHubリポジトリ作成・push（https://github.com/scc-s-fukui/scc-s-fukui.github.io）
+- [x] 動作確認（公開URL https://scc-s-fukui.github.io/ でHome/Works表示・フェード画面遷移を確認、ビルドステータスbuilt）
+- [x] 完了報告
 
 ## 保留・未対応事項
 - index.html / works.html 内の氏名・自己紹介・実績内容はダミーテキストのため、公開前に実内容へ差し替えが必要
