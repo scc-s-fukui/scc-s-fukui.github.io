@@ -4,7 +4,7 @@ GitHub Pages で公開するポートフォリオサイトのベーステンプ�
 
 ## 公開URL
 
-https://scc-soichiro-fukui-01.github.io/
+https://scc-s-fukui.github.io/
 
 ## 構成
 
