@@ -9,12 +9,14 @@
 ## 完了項目
 - [x] プロジェクトフォルダ作成
 - [x] progress.md 作成
-- [ ] サイトファイル一式作成（index.html / works.html / css / js / README）
-- [ ] ADR記録（docs/adr/）
-- [ ] git init・コミット
-- [ ] GitHubリポジトリ作成・push
-- [ ] 動作確認（ローカル・GitHub Pages）
-- [ ] 完了報告
+- [x] サイトファイル一式作成（index.html / works.html / css / js / README）
+- [x] ADR記録（docs/adr/0001-user-site-repo-naming.md）
+- [x] git init・コミット（5541427）
+- [x] GitHubリポジトリ作成・push（https://github.com/scc-soichiro-fukui-01/scc-soichiro-fukui-01.github.io）
+- [x] 動作確認（ローカルでHome/Worksの表示・コンソールエラー無しを確認）
+- [x] 完了報告
 
 ## 保留・未対応事項
-（なし）
+- GitHub Pagesは作成時点で「building」ステータス。数分後に https://scc-soichiro-fukui-01.github.io/ で反映確認が必要
+- ブラウザプレビューのサンドボックス制限により、クリックによる画面遷移（フェード演出）の自動検証は未実施。実ブラウザまたは公開後のURLでの目視確認を推奨
+- index.html / works.html 内の氏名・自己紹介・実績内容はダミーテキストのため、公開前に実内容へ差し替えが必要
