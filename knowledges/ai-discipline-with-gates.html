@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIに規律を守らせる仕組み</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --sub: #6b7280;
+    --accent: #2563eb;
+    --accent-dark: #1e40af;
+    --accent-light: #eff6ff;
+    --good: #059669;
+    --good-light: #ecfdf5;
+    --warn: #d97706;
+    --warn-light: #fffbeb;
+    --bad: #dc2626;
+    --bad-light: #fef2f2;
+    --line: #e5e7eb;
+    --bg: #f9fafb;
+    --card: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Yu Gothic UI", "Hiragino Sans", Meiryo, sans-serif;
+    color: var(--ink); background: var(--bg); line-height: 1.85; font-size: 15.5px;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  /* ===== ヒーロー ===== */
+  header.hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+    color: #fff; border-radius: 16px; padding: 40px 40px 34px; margin-bottom: 28px;
+  }
+  header.hero .eyebrow { font-size: 13px; opacity: .8; letter-spacing: .1em; margin-bottom: 10px; }
+  header.hero h1 { font-size: 30px; margin-bottom: 10px; letter-spacing: .02em; line-height: 1.4; }
+  header.hero .lead { font-size: 17px; opacity: .92; font-weight: 300; }
+  header.hero .meta { opacity: .8; font-size: 13px; margin-top: 18px; }
+  header.hero .badges { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .badge {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+    border-radius: 999px; padding: 4px 14px; font-size: 13px;
+  }
+
+  /* ===== 目次 ===== */
+  nav.toc {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 24px; margin-bottom: 32px; font-size: 14px;
+  }
+  nav.toc b { display: block; margin-bottom: 8px; color: var(--sub); font-size: 12.5px; letter-spacing: .08em; }
+  nav.toc a { color: var(--accent); text-decoration: none; margin-right: 18px; white-space: nowrap; line-height: 2; display: inline-block; }
+  nav.toc a:hover { text-decoration: underline; }
+
+  /* ===== セクション ===== */
+  section { margin-bottom: 48px; scroll-margin-top: 20px; }
+  h2 {
+    font-size: 21px; margin-bottom: 18px; padding-bottom: 9px;
+    border-bottom: 2px solid var(--accent); display: flex; align-items: center; gap: 10px;
+  }
+  h2 .num {
+    background: var(--accent); color: #fff; border-radius: 8px; font-size: 13px;
+    padding: 2px 10px; font-weight: 600; flex: none;
+  }
+  h3 { font-size: 16.5px; margin: 28px 0 10px; color: var(--accent-dark); }
+  h4 { font-size: 15px; margin: 20px 0 6px; }
+  p { margin-bottom: 13px; }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 6px; }
+  strong { font-weight: 600; }
+  code {
+    background: #f3f4f6; border: 1px solid var(--line); border-radius: 4px;
+    padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 13px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 26px; margin-bottom: 16px;
+  }
+
+  /* ===== テーブル ===== */
+  .table-wrap { overflow-x: auto; margin-bottom: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--card); }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent-dark); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  table.bordered { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+
+  /* ===== 引用・強調ブロック ===== */
+  .quote {
+    background: var(--card); border-left: 4px solid var(--accent);
+    padding: 16px 22px; margin: 16px 0; border-radius: 0 10px 10px 0;
+    font-size: 15px; color: var(--accent-dark);
+  }
+  .callout { border-radius: 10px; padding: 16px 22px; margin: 16px 0; font-size: 14.5px; }
+  .callout .title { font-weight: 600; margin-bottom: 6px; display: block; }
+  .callout.key { background: var(--accent-light); border: 1px solid #bfdbfe; color: var(--accent-dark); }
+  .callout.good { background: var(--good-light); border: 1px solid #a7f3d0; }
+  .callout.warn { background: var(--warn-light); border: 1px solid #fde68a; }
+  .callout.bad  { background: var(--bad-light);  border: 1px solid #fecaca; }
+
+  /* ===== コード ===== */
+  pre {
+    background: #1f2937; color: #e5e7eb; border-radius: 10px;
+    padding: 14px 18px; margin: 10px 0 16px; overflow-x: auto;
+    font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 13px; line-height: 1.7;
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+  pre .c-bad { color: #fca5a5; }
+  pre .c-good { color: #86efac; }
+
+  /* ===== 3層構造図 ===== */
+  .stack { margin: 22px 0 8px; }
+  .layer {
+    background: var(--card); border: 2px solid var(--accent); border-radius: 12px;
+    padding: 16px 22px; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  }
+  .layer .lname { font-weight: 700; font-size: 16px; color: var(--accent-dark); flex: none; min-width: 72px; }
+  .layer .ldesc { font-size: 14px; color: var(--ink); flex: 1 1 260px; }
+  .layer .lwho { font-size: 12.5px; color: #fff; background: var(--accent); border-radius: 999px; padding: 2px 12px; flex: none; }
+  .layer.rec { border-color: var(--good); }
+  .layer.rec .lname { color: #047857; }
+  .layer.rec .lwho { background: var(--good); }
+  .arrow { text-align: center; color: var(--sub); font-size: 13px; padding: 7px 0; line-height: 1.4; }
+  .arrow b { display: block; font-size: 18px; color: var(--accent); line-height: 1; }
+
+  /* ===== ビフォーアフター ===== */
+  .duo { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .duo > div { flex: 1 1 300px; }
+  .flow {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 18px; font-size: 13.5px; font-family: Consolas, Menlo, monospace;
+  }
+  .flow.before { border-left: 4px solid var(--bad); }
+  .flow.after  { border-left: 4px solid var(--good); }
+  .flow .ftag { font-family: "Segoe UI", "Yu Gothic UI", sans-serif; font-size: 12px; font-weight: 600; color: var(--sub); display: block; margin-bottom: 8px; }
+
+  /* ===== 要点 ===== */
+  .takeaways { display: flex; gap: 16px; flex-wrap: wrap; }
+  .takeaway {
+    flex: 1 1 240px; background: var(--card); border: 1px solid var(--line);
+    border-top: 4px solid var(--accent); border-radius: 12px; padding: 20px 22px;
+  }
+  .takeaway .tnum {
+    display: inline-block; background: var(--accent); color: #fff; width: 26px; height: 26px;
+    border-radius: 50%; text-align: center; line-height: 26px; font-size: 14px; font-weight: 700; margin-bottom: 10px;
+  }
+  .takeaway .tmain { font-weight: 600; font-size: 15px; margin-bottom: 6px; line-height: 1.6; }
+  .takeaway .tsub { font-size: 13.5px; color: var(--sub); line-height: 1.7; }
+
+  /* ===== フッター ===== */
+  footer {
+    margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--line);
+    font-size: 13px; color: var(--sub);
+  }
+
+  /* ===== 印刷 ===== */
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .container { max-width: none; padding: 0; }
+    header.hero { background: var(--accent-dark) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    nav.toc { display: none; }
+    section { page-break-inside: auto; }
+    h2 { page-break-after: avoid; }
+    .card, .callout, .takeaway, table { page-break-inside: avoid; }
+    pre { background: #f3f4f6 !important; color: #1f2937 !important; border: 1px solid #d1d5db; }
+    pre .c-bad { color: #b91c1c !important; }
+    pre .c-good { color: #047857 !important; }
+  }
+  @media (max-width: 640px) {
+    header.hero { padding: 28px 22px; }
+    header.hero h1 { font-size: 23px; }
+    .card { padding: 18px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <h1>AIに規律を守らせる仕組み</h1>
+  <div class="lead">指示ではなく、ゲートで担保する ── Claude Code を半年運用して分かったこと</div>
+  <div class="badges">
+    <span class="badge">読了目安 20分</span>
+    <span class="badge">対象：AIコーディングを業務で使う人</span>
+    <span class="badge">前提知識：不要</span>
+  </div>
+  <div class="meta">2026-09-17</div>
+</header>
+
+<nav class="toc">
+  <b>目次</b>
+  <a href="#s00">要点</a>
+  <a href="#s0">はじめに</a>
+  <a href="#s1">1. 指示は守られない</a>
+  <a href="#s2">2. お願いからゲートへ</a>
+  <a href="#s3">3. 規範と検証の関係</a>
+  <a href="#s4">4. 規範をどう書くか</a>
+  <a href="#s5">5. 検証をどう作るか</a>
+  <a href="#s6">6. 効果は測れているのか</a>
+  <a href="#s7">7. 導入コストと落とし穴</a>
+</nav>
+
+<!-- ===================== 要点 ===================== -->
+<section id="s00">
+  <h2><span class="num">要点</span>先に結論</h2>
+
+  <p>この文章の主張は4つです。以下が腑に落ちれば、細部は読み飛ばして構いません。</p>
+
+  <div class="takeaways">
+    <div class="takeaway">
+      <span class="tnum">1</span>
+      <div class="tmain">AIへの「お願い」は、長い作業ほど効かなくなる</div>
+      <div class="tsub">守ってほしい場面ほど守られない、という構造的な問題がある。規律の担保先を、AIの内側から外側に移す必要がある。<br><a href="#s1" style="color:var(--accent);text-decoration:none">→ 1章</a></div>
+    </div>
+    <div class="takeaway">
+      <span class="tnum">2</span>
+      <div class="tmain">人間の開発プロセスで既にやっていることを、AIに対してもやるだけ</div>
+      <div class="tsub">PR・Lint・CI と同じ。新しい概念は何もない。規約とLintの両方が要るように、指示とゲートも両方要る。<br><a href="#s2" style="color:var(--accent);text-decoration:none">→ 2章</a>　<a href="#s3" style="color:var(--accent);text-decoration:none">→ 3章</a></div>
+    </div>
+    <div class="takeaway">
+      <span class="tnum">3</span>
+      <div class="tmain">hook が要るのは、破られても気づかないルールだけ</div>
+      <div class="tsub">全部のルールに検証は要らない。読めば破られたと分かるものは、規範だけでいい。そして、書いた検証自体が黙って壊れていないかも疑うこと。<br><a href="#s3" style="color:var(--accent);text-decoration:none">→ 3章</a>　<a href="#s5" style="color:var(--accent);text-decoration:none">→ 5章</a></div>
+    </div>
+    <div class="takeaway">
+      <span class="tnum">4</span>
+      <div class="tmain">ルールは思いつきではなく、記録から発掘する</div>
+      <div class="tsub">規範は最初から全部書けない。作業の記録に現れる反復が、無意識に守っていた規律を教えてくれる。<br><a href="#s4" style="color:var(--accent);text-decoration:none">→ 4章</a></div>
+    </div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--good);margin-top:18px">
+    <strong style="font-size:16px">まずは、ここから1本だけ</strong>
+    <ol style="margin:10px 0 0 22px">
+      <li><strong>今週AIに2回以上言った同じ指摘を、1つ思い出す。</strong>
+        <span style="color:var(--sub);font-size:13.5px">例：「テストしてから報告して」</span></li>
+      <li><strong>それを CLAUDE.md に1行で書く。</strong>
+        <span style="color:var(--sub);font-size:13.5px">条件と動作だけ。「注意する」で終わる文になったら、それはまだルールになっていません</span></li>
+      <li><strong>それを検証する hook を1本だけ書く。止めない「通知」で。</strong>
+        <span style="color:var(--sub);font-size:13.5px">書いた直後に、わざと違反して鳴ることを必ず確かめる</span></li>
+    </ol>
+    <p style="margin:12px 0 0;font-size:14px">ここまでで30分〜1時間です。
+    <strong>いきなり全部入れないこと。</strong>ルール20個と hook 10本を一度に入れると、誤検知の洪水で3日で外すことになります。
+    <strong>1ルール1hookずつ。</strong><a href="#s7" style="color:var(--accent);text-decoration:none">→ 7章</a></p>
+  </div>
+</section>
+
+<!-- ===================== はじめに ===================== -->
+<section id="s0">
+  <h2><span class="num">はじめに</span>この文章について</h2>
+
+  <div class="callout key">
+    <span class="title">伝えたいのは、設定ファイルではなく考え方です。</span>
+    AIコーディングの話題は「どう指示するか（プロンプト）」に集中しがちですが、実務で効いてくるのは
+    <strong>「指示が守られなかったときに、どう気づくか」</strong>のほうです。この文章は、後者を機械的に担保する構造の記録です。
+  </div>
+
+  <p>Claude Code を業務で半年ほど運用するなかで組み上げた仕組みを、実例と失敗込みで書いています。
+  ただし<strong>そのままコピーして使うことは薦めません。</strong>ここに出てくるルールは、すべて
+  「自分が繰り返しやられた失敗」から逆算したものです。
+  自分の仕事に合わせて作り直すための素材として読んでください。</p>
+
+  <h3>前提：Claude Code の2つの仕組み</h3>
+  <p>本文に出てくる固有名詞は2つだけです。先に押さえておけば、あとは一般論として読めます。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:22%">名前</th><th>何か</th></tr>
+    <tr><td><strong>CLAUDE.md</strong></td>
+      <td>AIが<strong>毎回自動で読み込む常時指示書</strong>。リポジトリに置けばそのプロジェクト用、ホーム配下に置けば全プロジェクト共通の指示になる。要は「会話のたびに冒頭で渡される、いつもの指示」。</td></tr>
+    <tr><td><strong>Hooks</strong></td>
+      <td>AIの動作の前後に<strong>自分のスクリプトを割り込ませる</strong>仕組み。設定ファイルに「このタイミングでこのコマンドを実行する」と書いておくと、AIの意思とは無関係に必ず実行される。<strong>この「無関係に」が本稿の肝です。</strong></td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ===================== 1 ===================== -->
+<section id="s1">
+  <h2><span class="num">1</span>指示は守られない</h2>
+
+  <h3>よくある光景</h3>
+  <p>CLAUDE.md にこう書いたとします。</p>
+
+  <div class="quote">修正が終わったらビルドとテストを実行してから完了報告すること。</div>
+
+  <p>最初の数回は守られます。しかし、</p>
+  <ul>
+    <li>会話が長くなる</li>
+    <li>修正が5ファイル、10ファイルと増える</li>
+    <li>途中で別の話題が挟まる</li>
+  </ul>
+  <p>と、<strong>テストを実行せずに「完了しました」と報告してくる</strong>ようになります。
+  しかも悪いことに、報告の文面は実行したときと変わりません。</p>
+
+  <h3>なぜこうなるのか</h3>
+  <p>これはAIの性能の問題ではなく、<strong>指示という手段の性質</strong>の問題です。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:45%">指示の性質</th><th>結果</th></tr>
+    <tr><td>確率的にしか効かない</td><td>守られる回でも、守られない回がある</td></tr>
+    <tr><td>文脈が長くなるほど薄まる</td><td>長い作業ほど守られなくなる（＝守ってほしい場面ほど効かない）</td></tr>
+    <tr><td>破ったことを誰も検知しない</td><td>破られたまま完了する</td></tr>
+  </table>
+  </div>
+
+  <div class="callout bad">
+    <span class="title">3つ目が本質です</span>
+    「テストしていないのに完了と言った」ことに、誰も気づいていない。
+    気づいていないので、対策も打たれず、同じことが翌日も起きます。
+  </div>
+
+  <h3>人間の開発プロセスではどうしているか</h3>
+  <p>同じ問題は人間相手にも起きます。そして我々は既に答えを持っています。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:22%">対象</th><th style="width:34%">「お願い」だけの世界</th><th>実際にやっていること</th></tr>
+    <tr><td>コードレビュー</td><td>「気をつけて書いてね」</td><td>PRを立てて、承認されるまでマージできない</td></tr>
+    <tr><td>コーディング規約</td><td>「規約に従ってね」</td><td>Lint がCIで落とす</td></tr>
+    <tr><td>テスト</td><td>「テストしてね」</td><td>CIが失敗したらデプロイできない</td></tr>
+  </table>
+  </div>
+
+  <div class="callout key">
+    我々は人間に対しては、とっくに「お願い」を諦めて<strong>検問</strong>に移行しています。<br>
+    AIに対してだけ、まだお願いを続けている ── というのが現状です。<br>
+    <span style="font-size:13.5px;opacity:.85">※ 以降、この検問にあたるものを<strong>ゲート</strong>と呼びます。</span>
+  </div>
+</section>
+
+<!-- ===================== 2 ===================== -->
+<section id="s2">
+  <h2><span class="num">2</span>お願いからゲートへ</h2>
+
+  <p>やることは単純です。「守らせる」のをやめて、「守らなかったことを検知する」に切り替えます。</p>
+
+  <div class="duo">
+    <div class="flow before">
+      <span class="ftag">これまで</span>
+      指示を書く<br>　↓<br><span style="color:#dc2626">AIが守る（といいな）</span>
+    </div>
+    <div class="flow after">
+      <span class="ftag">これから</span>
+      指示を書く<br>　↓<br>AIが作業する<br>　↓<br><span style="color:#059669">機械が検証する</span><br>　↓<br><span style="color:#059669">破っていたら差し戻す</span>
+    </div>
+  </div>
+
+  <p>ここで Hooks を使います。差し込めるタイミングはいくつかありますが、実用上は次の3つで足ります。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:26%">タイミング</th><th style="width:26%">できること</th><th>主な用途</th></tr>
+    <tr><td>ファイル編集の<strong>前</strong></td><td>編集を止める</td><td>触ってはいけないファイルの保護</td></tr>
+    <tr><td>ファイル編集の<strong>後</strong></td><td>ブロック／通知</td><td>規約違反の検知、必要作業の想起</td></tr>
+    <tr><td><strong>完了報告の直前</strong></td><td>ブロック／通知</td><td>「やり残し」の検出</td></tr>
+  </table>
+  </div>
+
+  <p><strong>ブロック</strong>（対処するまで終われない）と<strong>通知</strong>（止めない）の使い分けは5章で扱います。</p>
+
+  <h3>最も効くのは「完了報告の直前」</h3>
+  <div class="callout key">
+    <span class="title">AIが手を抜くのは、常に「終わりにしようとする瞬間」だからです。</span>
+    ここにゲートを置くと、以下が自動で起きます。
+  </div>
+  <ul>
+    <li>5ファイル以上直したのに作業記録を書いていない → 指摘して書かせる</li>
+    <li>ソースを直したのに対応するREADMEを直していない → 指摘して直させる</li>
+    <li>テストを実行していない → 実行させる、または「未実施」と明記させる</li>
+  </ul>
+
+  <p>差し戻されたAIは、指摘に対処してから改めて終了します。
+  <strong>人間が毎回チェックする必要がなくなる</strong>のがポイントです。</p>
+
+  <div class="callout good">
+    <span class="title">ここで起きている本質的な変化</span>
+    指示は「AIに解釈される」ものですが、hook は<strong>AIの外側で実行されます。</strong>
+    AIがどれだけ文脈を見失っていても、hook は同じ判定を返します。
+    <strong>規律の担保先を、AIの内側から外側に移すこと</strong>── これが全体の設計思想です。
+  </div>
+</section>
+
+<!-- ===================== 3 ===================== -->
+<section id="s3">
+  <h2><span class="num">3</span>規範と検証の関係</h2>
+
+  <p>仕組みは2つの部品でできています。</p>
+
+  <div class="stack">
+    <div class="layer">
+      <span class="lname">規範</span>
+      <span class="ldesc">何を守るか ── 20個程度の行動ルール（CLAUDE.md）</span>
+      <span class="lwho">人間が決める</span>
+    </div>
+    <div class="arrow"><b>↓</b>ルール番号で紐づく</div>
+    <div class="layer">
+      <span class="lname">検証</span>
+      <span class="ldesc">守られたかを見る ── ルールごとに1スクリプト（Hooks）。強度の違う3層がある（5章）</span>
+      <span class="lwho">機械がやる</span>
+    </div>
+  </div>
+
+  <p>「ルール5」に対応する hook、「ルール14」に対応する hook、という形で1対1に紐付けます。
+  この章では、この2つの関係について、必ず出る2つの疑問に答えておきます。</p>
+
+  <h3>両方に書くのは、二重記載ではないか</h3>
+
+  <p>「CLAUDE.md にテストしろと書き、hook でもテストを確認する。同じことを2回書いているのでは？」
+  ── そうではありません。<strong>両者は時制が違います。</strong></p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:22%"></th><th style="width:39%">CLAUDE.md</th><th>hook</th></tr>
+    <tr><td><strong>働くタイミング</strong></td><td>行動の<strong>前</strong>（事前指示）</td><td>行動の<strong>後</strong>（事後検証）</td></tr>
+    <tr><td><strong>効き方</strong></td><td>確率的（ふだんは効くが、長い作業ほど薄まる）</td><td>決定論的（AIの状態と無関係に必ず走る）</td></tr>
+    <tr><td><strong>守備範囲</strong></td><td>機械判定できないことも書ける</td><td>機械判定できることだけ</td></tr>
+  </table>
+  </div>
+
+  <div class="callout key">
+    <span class="title">コーディング規約ドキュメントと Lint の関係と同じです。</span>
+    誰も「Lint を入れたから規約ドキュメントを消せ」とは言いません。
+    規約は書き手に<strong>事前に伝えるもの</strong>、Lint は<strong>伝わらなかったぶんを後から捕まえるもの</strong>で、役割が違うからです。
+  </div>
+
+  <p>片方を消すとどうなるかで考えると、分担がはっきりします。</p>
+  <ul>
+    <li><strong>CLAUDE.md を消して hook だけにする</strong> → AIは事前に何も知らないので、
+      <strong>毎回1回違反してから差し戻される</strong>ことになります。往復が増え、時間もトークンも無駄になります</li>
+    <li><strong>hook を消して CLAUDE.md だけにする</strong> → 1章の状態に戻ります</li>
+  </ul>
+  <p>事前指示がふだんの大半を止めてくれるから、hook の発火が例外的なもので済んでいます。<strong>どちらも要ります。</strong></p>
+
+  <h4>ただし、してはいけない二重化はある</h4>
+
+  <p>危ないのは「両方に書いてあること」ではなく、<strong>ルールの定義そのものが2箇所にあって、あとから食い違うこと</strong>です。分担はこうなります。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:38%">何を</th><th style="width:26%">CLAUDE.md</th><th>hook のメッセージ</th></tr>
+    <tr><td><strong>ルールの定義</strong>（何を守るか）</td><td>◯ <strong>正典はここだけ</strong></td><td>✕ 書かない</td></tr>
+    <tr><td>ルール番号</td><td>◯ 固定ID（4章）</td><td>◯ <strong>参照するだけ</strong></td></tr>
+    <tr><td>検知条件（いつ鳴るか）</td><td>✕</td><td>◯</td></tr>
+    <tr><td>その場の具体手順（どう直すか）</td><td>✕</td><td>◯</td></tr>
+    <tr><td>逃げ道の条件</td><td>△</td><td>◯</td></tr>
+  </table>
+  </div>
+
+  <div class="callout good">
+    <span class="title">規範を1行に保てるのは、hook が手順を引き受けているからです。</span>
+    「FrontEnd は lint をプロジェクト全体で実行し、テストは専用の手順を経由する」といった話を CLAUDE.md に書いたら、1行には絶対に収まりません。
+    こうした状況依存の手順は hook のメッセージが持ち、規範は「ビルドとテストを実行する」の1行で済ませる。
+    <strong>次章の「1ルール1行」が成立しているのは、この分担があるからです。</strong>
+  </div>
+
+  <div class="callout warn">
+    <span class="title">自己診断：hook のメッセージを「[ルール5]」で始められますか。</span>
+    始められないなら、その hook は<strong>規範に紐づいていません。</strong>
+    どこにも書かれていないルールが hook にだけ生きている状態で、AIは差し戻されて初めてその存在を知り、
+    規範を読み返しても書いていないので次も同じことをします。
+    <strong>番号を頭に付けるという作業そのものが、対応するルールの有無を強制的に確認させます。</strong>
+  </div>
+
+  <h3>どのルールに hook が要るか</h3>
+
+  <p>規範の全部に hook を書く必要はありません。基準は「検証が書けるか」ではなく、
+  <strong>「破られたときに、人間が気づくか」</strong>です。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:17%">破られたら気づくか</th><th style="width:16%">機械で判定できるか</th><th style="width:25%">扱い</th><th>例</th></tr>
+    <tr><td><strong>気づく</strong></td><td>—</td><td><strong>規範だけでよい</strong></td><td>日本語で書く／完了報告に未対応事項を含める ── 読めば分かる</td></tr>
+    <tr><td><strong>気づかない</strong></td><td>できる</td><td><strong>hook を書く</strong></td><td>テストを実行したか ── 報告の文面は、実行した回としない回で変わらない</td></tr>
+    <tr><td><strong>気づかない</strong></td><td>できない</td><td><strong>ルールとして機能しない</strong></td><td>「設計を妥当に保つ」── 願望であって、ルールではない（5章）</td></tr>
+  </table>
+  </div>
+
+  <div class="callout key">
+    <span class="title">hook が要るのは、破られても気づかないルールだけです。</span>
+    ここを取り違えて、気づけるルールにまで hook を書くと通知が増え、
+    <strong>本当に気づけないルールの通知が、その中に埋もれます。</strong>
+    運用している共通ルール14個のうち、hook を書いているのは5個だけです。
+  </div>
+
+  <div class="callout bad">
+    <span class="title">逆に、3行目に当たるルールは書かない方がましです。</span>
+    破られても気づかず、機械でも判定できないものは、書いた時点で満足して終わります。
+    「注意する」「意識する」で終わる文になったら、この行に落ちているサインです（4章）。
+  </div>
+
+  <p>以降、規範と検証を順に見ていきます。</p>
+</section>
+
+<!-- ===================== 4 ===================== -->
+<section id="s4">
+  <h2><span class="num">4</span>規範をどう書くか</h2>
+
+  <h3>まず「どこに置くか」を分ける</h3>
+  <p>ルールの中身の前に、置き場所の話をします。ここを分けておかないと、後述の「20個まで」が成立しません。</p>
+  <p>CLAUDE.md は階層的に置けます。ホーム配下に置けば全プロジェクトで読まれ、
+  リポジトリ配下に置けばそのプロジェクトでのみ読まれます（両方ある場合は両方読まれます）。
+  この2つを、明確に役割で分けます。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:18%"></th><th style="width:41%">共通ルール（ホーム配下）</th><th>プロジェクトルール（リポジトリ配下）</th></tr>
+    <tr><td><strong>書くこと</strong></td><td>どの案件でも成り立つ<strong>仕事の進め方</strong></td><td>その案件・技術スタック<strong>固有の事情</strong></td></tr>
+    <tr><td><strong>例</strong></td><td>完了報告に変更ファイル一覧・テスト結果・未対応事項を含める</td><td>stage以降のブランチはPR必須／入力エラーは項目横ではなくメッセージエリアに表示する</td></tr>
+    <tr><td><strong>個数</strong></td><td><strong>20個が上限</strong></td><td>上限なし（1ルール1行は同じ）</td></tr>
+    <tr><td><strong>判定</strong></td><td colspan="2">「<strong>他のプロジェクトでも同じことを指摘するか？</strong>」── Yesなら共通、Noならプロジェクト</td></tr>
+  </table>
+  </div>
+
+  <div class="callout key">
+    <span class="title">共通側に案件固有のルールを書かない理由</span>
+    書いた本人には有用でも、<strong>他の9割のプロジェクトではノイズ</strong>です。
+    そして「自分に関係ないことが書いてある文書」は、関係のある部分まで含めて読み飛ばされます。
+    <strong>1つの無関係なルールが、規範全体の信頼度を下げる</strong>── 人間の規程類とまったく同じです。<br>
+    逆に言えば、<strong>逃がし先があるから次の「20個まで」を守れます。</strong>プロジェクト側に書く場所がないと、
+    無理に一般化した曖昧なルールを書くか、上限そのものが破られます。
+  </div>
+
+  <p>以下の話は、断りがない限り<strong>共通ルール</strong>についてのものです。</p>
+
+  <h3>ゲートを3つに分ける</h3>
+  <p>ルールを羅列すると読まれません。<strong>作業のどの瞬間に効くか</strong>で分類します。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:20%">ゲート</th><th style="width:20%">タイミング</th><th>ルールの例</th></tr>
+    <tr><td><strong>開始ゲート</strong></td><td>着手する前</td><td>大きい作業なら作業記録を作る／方向が2通りあるなら1文で確認する／過去の調査結果があれば再調査せず使う</td></tr>
+    <tr><td><strong>実装ゲート</strong></td><td>手を動かす間</td><td>作業対象のリポジトリ・ブランチを1コマンドで確認してから触る／依頼範囲外のファイルを変更しない</td></tr>
+    <tr><td><strong>完了ゲート</strong></td><td>報告する前</td><td>変更ファイル一覧・テスト結果・未対応事項を必ず含める</td></tr>
+  </table>
+  </div>
+
+  <div class="callout key">
+    <span class="title">ゲートの位置と、検証を置く位置は一致しません。</span>
+    「着手前に作業記録を作る」は開始ゲートのルールですが、<strong>着手した時点では守られたか判定できません。</strong>
+    分かるのは終わったときなので、検証（hook）は完了報告の直前に置きます。
+    <strong>ルールを分類するのはゲート、検証を置くのは「違反が確定する瞬間」</strong>── 別物として考えてください。
+  </div>
+
+  <div class="callout good">
+    <span class="title">副次効果</span>
+    新しいルールを思いついたとき「どのゲートか」を考えることで、
+    <strong>それが本当にルールなのか、単なる願望なのかが判別できます。</strong>
+    どのゲートにも置けないものは、たいてい願望です。
+  </div>
+
+  <h3>メタルール①：共通ルールは20個までにする</h3>
+  <p>これが実は一番重要な発見でした。ルールは放っておくと増えます。失敗するたびに1つ足したくなるからです。
+  しかし<strong>ルールが増えると、全体の遵守率が下がります。</strong>（人間もAIも同じです）</p>
+
+  <div class="quote">ルールは20個を上限とする。追加する場合は既存ルール1つの削除とセットで行う。</div>
+
+  <p><strong>上限があると、「本当にこれは既存ルールより重要か」を毎回考えることになります。</strong>
+  追加したいルールが出てきて捨てる候補が見つからないなら、それは追加するほどのものではなかった、ということです。</p>
+
+  <h3>メタルール②：1ルールを1行に収める（①と対）</h3>
+  <p>「20個まで」が<strong>個数</strong>の制約だとすれば、こちらは<strong>長さ</strong>の制約です。
+  ルールは1つにつき1行で書き、条件と動作だけを残します。</p>
+
+  <div class="duo">
+    <div class="flow before" style="font-family:inherit;font-size:14px">
+      <span class="ftag">✕ 1行に収まらない</span>
+      コードを修正するときは、対象リポジトリを間違えないよう注意し、ブランチが正しいか確認したうえで、必要なら作業ツリーを整理してから着手すること。複数リポジトリにまたがる場合は特に慎重に扱う。
+    </div>
+    <div class="flow after" style="font-family:inherit;font-size:14px">
+      <span class="ftag">◯ 実際に運用しているもの</span>
+      コード修正・コマンド実行の前に、作業ディレクトリ・ブランチ・HEAD を1コマンドで確認する。
+    </div>
+  </div>
+
+  <p>1行に制限すると、書いている途中で以下が勝手に炙り出されます。</p>
+  <ul>
+    <li><strong>1行に収まらないルールは、複数のルールが混ざっている。</strong>分解するか、捨てるかを迫られる。</li>
+    <li><strong>「注意する」「意識する」が残るルールは、中身がない。</strong>
+      何をしたら守ったことになるのかが書けていないので、破られても気づけず、機械でも判定できません（3章）。</li>
+    <li><strong>全体が20行に収まる。</strong>一画面で読み切れることが、そのまま遵守率に効きます。
+      読み返すのに気合が要る規範は、人もAIも読み返しません。</li>
+  </ul>
+
+  <div class="callout good">
+    <span class="title">「20個以内」と「1行以内」はセットです。</span>
+    個数だけ絞っても、1つが10行あれば結局読まれません。<strong>規範全体を、毎回読み直せるサイズに保つ</strong>のが本当の狙いです。
+  </div>
+
+  <h3>メタルール③：番号を固定IDとして扱う</h3>
+  <p>地味ですが、hook と組み合わせたときに効いてきます。</p>
+  <div class="quote">番号は固定IDとして扱い、削除しても振り直さない（欠番を許容する）</div>
+  <p>欠番を許すことで、「ルール5」という呼び名が永久に同じものを指します。
+  hook のメッセージやレビューコメントで番号を使えるようになり、<strong>「ルール5違反です」の一言で話が通じます。</strong>
+  振り直す運用にすると、過去のメッセージがすべて別のルールを指すようになって崩壊します。</p>
+
+  <h3>ルールは、思いつきではなく記録から発掘する</h3>
+
+  <p>ここまでは「ルールをどう書くか」でした。最後に、<strong>ルールをどこから見つけるか</strong>です。</p>
+
+  <p>規範は、最初から全部書けるものではありません。
+  <strong>自分が何を当たり前にやっているかは、やっている本人には見えない</strong>からです。
+  意識せずに毎回やっていることほど、ルールとして書き出されません。</p>
+
+  <p>材料になるのは、作業の過程で溜まる記録です。性質の違う2種類があり、<strong>混ぜないことだけ</strong>守れば十分です。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:14%"></th><th style="width:43%">作業記録</th><th>判断記録</th></tr>
+    <tr><td><strong>目的</strong></td><td>中断しても再開できる</td><td>なぜそう決めたかを残す</td></tr>
+    <tr><td><strong>寿命</strong></td><td>作業が終われば役目を終える（使い捨て）</td><td>消さない</td></tr>
+    <tr><td><strong>分量</strong></td><td>制限なし。「対象外（今回触らないもの）」を先に書いておくと、依頼範囲外を触る事故が減る</td>
+      <td><strong>3行</strong>（背景／決定／理由）。長いと書かれない</td></tr>
+  </table>
+  </div>
+
+  <p>これが溜まってくると、そこに反復が現れます。</p>
+  <ul>
+    <li>同じ論点に、毎回同じ結論を出している</li>
+    <li>作業記録の「対象外」に、いつも同じ種類のものを書いている</li>
+    <li>判断記録の「理由」が、別案件なのに同じ観点に帰着している</li>
+  </ul>
+
+  <div class="callout key">
+    <span class="title">反復は、まだ明文化されていない規律が既にそこにある、というサインです。</span>
+    実際に何度も必要になったことだけが残っているので、精度が高くなります。
+    思いつきで書いたルールは守られませんが、<strong>すでに無意識に守っていたことを明文化したルールは、最初から守られています。</strong>
+  </div>
+
+  <p>メタルール①で「捨てる候補」を選ぶときも同じです。
+  <strong>記録に一度も現れていないルールは、たいてい実務で使われていないルールです。</strong>
+  7章では「自分が繰り返し指摘していることを1つ思い出す」ところから始めると書きますが、
+  記憶に頼る必要はありません。記録を見返せば列挙できます。</p>
+</section>
+
+<!-- ===================== 5 ===================== -->
+<section id="s5">
+  <h2><span class="num">5</span>検証をどう作るか</h2>
+
+  <div class="callout key">
+    <span class="title">この章の要点（実装しない方はここだけで結構です）</span>
+    <ul style="margin:6px 0 0 20px">
+      <li>検証には強度の違う<strong>3つの層</strong>がある ── ①コードで白黒つける ②AIに再判断させる ③人間に投げる</li>
+      <li>共通原則は<strong>「判定は機械、修正はAI」</strong>。hook 自身にファイルを書き換えさせない</li>
+      <li>敵は<strong>誤検知</strong>と<strong>沈黙</strong>。通知から始め、書いた直後にわざと鳴らして確認する</li>
+    </ul>
+  </div>
+
+  <h3>検証の3層</h3>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:5%"></th><th style="width:22%">層</th><th style="width:24%">判定 → 対処</th><th>見分け方</th></tr>
+    <tr><td><strong>①</strong></td><td><strong>コードで白黒つける</strong></td><td>機械が判定 → AIが直す</td><td>ファイルを読めば白黒つくか<br><span style="color:var(--sub);font-size:13px">文字コード、記述規約、禁止パターン</span></td></tr>
+    <tr><td><strong>②</strong></td><td><strong>プロンプトで再判断させる</strong></td><td>機械が検知 → <strong>AIが判断</strong>して直す</td><td>「あるはずのものが無い」を状態の突合で検知できるか<br><span style="color:var(--sub);font-size:13px">README同期、作業記録の有無</span></td></tr>
+    <tr><td><strong>③</strong></td><td><strong>人間に投げる</strong></td><td>機械が検知 → <strong>人間が判断</strong></td><td>誤ったときの損害が大きく、人間の判断を残したいか<br><span style="color:var(--sub);font-size:13px">保護対象ファイルの変更</span></td></tr>
+  </table>
+  </div>
+
+  <div class="callout bad">
+    <span class="title">どれにも当てはまらないものは、hook にしない。</span>
+    「コードの品質が十分か」「設計が妥当か」は3層のどれにも乗りません。
+    無理に hook にすると<strong>AIの成果物をAIに評価させる</strong>ことになり、結果は「常に通る」か「常に鳴る」のどちらか、どちらも情報量がゼロです。<br>
+    <strong>hook は「必ず走る」ことが価値です。必ず走るものに、曖昧な判定を載せてはいけません。</strong>
+  </div>
+
+  <div class="callout key">
+    <span class="title">3層に共通する原則：判定は機械、修正はAI。</span>
+    違反を検知したとき、その場でスクリプトに直させたくなります。数行で書けますし、そのほうが速い。
+    <strong>それでも hook 自身にファイルを書き換えさせてはいけません。</strong>
+    <ul style="margin:8px 0 0 20px">
+      <li>黙って直されると、AIは<strong>自分が何を外したかを知らないまま</strong>次に進み、同じ違反を繰り返す</li>
+      <li>誤検知したとき、差し戻しならAIは反論できるが、自動修正は<strong>正しいコードを黙って壊す</strong></li>
+      <li>差し戻せば「AIが直す → 次の編集で同じ hook が走る」で<strong>ループが閉じる</strong></li>
+    </ul>
+  </div>
+
+  <div class="callout warn">
+    <span class="title">どの層も、最初は「通知」から始めてください。</span>
+    止める（ブロックする）のは、誤検知が1回あるだけで一気に信頼を失い、hook ごと消されます。
+    「正しいのに止められた」という体験は、「間違っているのに素通りした」より遥かに強く記憶に残ります。
+    現在運用している10本のうち、実際に止めているのは3本だけです。
+  </div>
+
+  <h3>層①：コードで白黒つける</h3>
+
+  <p>いちばん確実な層です。<strong>ファイルを読んで、条件に当てはまるかを見るだけ。</strong>
+  AIは一切関与しないので、同じ入力には必ず同じ判定が返ります。</p>
+
+  <p>hook に渡ってくるのは標準入力のJSON1つ（どのツールで・どのファイルを・何を書いたか）だけ。
+  読んで、判定して、<code>sys.exit(2)</code> と一緒にメッセージを返せばAIに差し戻されます。
+  <strong>1本あたり実質20行のPythonです。</strong></p>
+
+  <p>難しいのは書くことではなく、<strong>誤検知させないこと</strong>です。半年運用して残った型が4つあります。</p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:26%">型</th><th style="width:37%">踏んだ失敗</th><th>対処</th></tr>
+    <tr><td><strong>1. 常に「今回の変更分」だけを見る</strong></td>
+      <td>ファイル全体を走査したら、<strong>既存のコメントを毎回叩き</strong>、さらに<strong>「違反を削除する編集」まで差し戻した</strong>。作業ツリーの未コミット差分で判定したら、<strong>別作業の差分で毎回鳴った</strong></td>
+      <td>ツールの入力から「今回新しく書かれた文字列」だけを検査する／会話ログから「このセッションでAIが編集したファイル」だけを数える。<strong>現状ではなく差分を見る</strong></td></tr>
+    <tr><td><strong>2. 規約の片側だけを検査する</strong></td>
+      <td>文字コード規約は「<code>.cs</code> はBOM付き、<code>.ts</code> はBOMなし」の両側規約だが、BOM必須側を検査すると既存ファイルが大量に引っかかる</td>
+      <td>BOM禁止側だけを検査する。<strong>規約の全体を機械化しようとせず、実害が出る半分に絞る</strong></td></tr>
+    <tr><td><strong>3. 逃げ道を先に用意する</strong></td>
+      <td>例外を認めない hook は、<strong>正当な例外が1回出た瞬間に hook ごと消される</strong></td>
+      <td>抑止キーワード（<code>no-encoding-check</code> 等）を書けばスキップできるようにする。その行が「意図的に外した」記録にもなる</td></tr>
+    <tr><td><strong>4. 既知の衝突を先回りで潰す</strong></td>
+      <td><code>ADR-\d+</code> がOracleの住所カラム <code>ADR1</code> に当たる／<code>#\d{3,}</code> がCSSの色コード <code>#000</code> と衝突する／<code>\b</code> が<strong>日本語で機能しない</strong>（Pythonの <code>\w</code> は日本語も単語文字として扱う）</td>
+      <td>区切り文字を必須にする、パターンごと採用しない、ASCII英数字だけを除外する先読みに置き換える。<strong>誤検知が出たら狭める、を数回繰り返す</strong></td></tr>
+  </table>
+  </div>
+
+  <h3>層②：プロンプトで再判断させる</h3>
+
+  <p>すべて層①で書けるかというと、書けません。次の例で詰まります。</p>
+
+  <div class="quote">ソースコードを変更したのに、README を更新していない。</div>
+
+  <p><strong>検知は機械で100%できます。</strong>このセッションで編集したファイルを見て、コードの拡張子があり README がなければよい。
+  しかし<strong>「READMEを更新すべきか」は、機械には決められません。</strong>
+  内部リファクタリングだけなら不要、公開している手順や仕様が変わったなら必須 ──
+  この判断には「今回何をしたか」という文脈が要り、それを持っているのはAIだけです。</p>
+
+  <p>そこで<strong>検知は機械がやり、判断はAIに戻します。</strong>
+  hook が理由文つきで差し戻すと、その理由文がそのままAIに渡り、AIは対処するまで会話を終了できなくなります。</p>
+
+  <div class="callout good">
+    <span class="title">この理由文は、hook が書くプロンプトです。</span>
+    層①のメッセージは「人間が後で読むエラーメッセージ」ですが、層②の理由文は<strong>AIに読ませて行動を変えさせる指示文</strong>です。
+    実際の文面には4つの要素を必ず入れています。<br>
+    <strong>事実</strong>（READMEを更新していない）／<strong>規範</strong>（本運用ではセットで行う）／
+    <strong>証拠</strong>（変更したソースのファイル名）／<strong>逃げ道</strong>（不要ならその理由を1行で明言する）。
+  </div>
+
+  <div class="callout bad">
+    <span class="title">逃げ道のない差し戻しは、素通りより悪い結果を生みます。</span>
+    AIは「対処しないと終われない」状態に置かれると、必ず何かをします。
+    README更新が不要な場面で逃げ道を塞ぐと、<strong>中身のない一文をREADMEに足して通過しようとします。</strong>
+    ゲートを置いたつもりが、ゲートを通るためだけの偽装を生産させていることになります。<br>
+    <strong>「やらない」選択肢を必ず明示的に与える。ただし「理由を言え」という条件付きで。</strong>
+    そうすれば判断がユーザーの目に残り、人間が気づけます。
+  </div>
+
+  <p>止めない版もあります。AIの文脈に文字列を注入するだけの「通知」で、AIは無視して進めます。
+  <strong>同じルールでも、タイミングによって強度を変えます。</strong>
+  ビルド・テスト実行の想起は、ソース編集の直後は<strong>通知</strong>（編集途中で止められたら作業が進まない）、
+  完了報告の直前は<strong>ブロック</strong>（ここが最後の機会）。通知で済んだ回は止まらず、無視した回だけが最後に止まります。</p>
+
+  <div class="callout warn">
+    <span class="title">層②に特有の事故が2つあります。</span>
+    <strong>① 無限ループ。</strong>完了報告の直前で差し戻す → AIが対処して再び完了しようとする → また同じ hook が走る、で終わらなくなります。
+    渡ってくるデータに「すでに一度差し戻した再入か」のフラグがあるので、真なら無条件で素通りさせます。<strong>層②を書くときの最初の一手です。</strong><br>
+    <strong>② 同じことを何度も言わない。</strong>1セッションで同じ指摘が3回出ると無視されます（AIも人間も同じです）。
+    セッションIDを記録してブロックは1回だけにし、2回目以降は通知に落としています。<strong>通知の価値は回数に反比例します。</strong>
+  </div>
+
+  <h3>層③：人間に投げる</h3>
+
+  <p>ツール実行の<strong>前</strong>に「人間に許可を求める」を返すと、実行直前で止まります。AIにも機械にも判断させない、という選択です。
+  使っているのは実質1本、<code>package.json</code> / <code>package-lock.json</code> の書き換えだけ。
+  npm系コマンドの副作用で勝手に変わることがあり、しかも<strong>AIに「これは意図した変更か」を判断させても当てになりません</strong>
+  （自分が起こした副作用を、自分で異常と認識できないため）。</p>
+
+  <div class="callout key">
+    <span class="title">判断させない領域を、意識して1つか2つ残しておくこと。</span>
+    全部を層①②で自動化すると、何が起きているかを誰も見なくなります。
+    <strong>人間が必ず1回は目を通す場所</strong>を、コストの高い操作の手前に置いておくのが、結果的にいちばん安く済みました。
+  </div>
+
+  <h3>最後に：hook は黙って死ぬ</h3>
+
+  <p>3層すべてに共通する、いちばんたちの悪い失敗です。
+  hook が日本語を含むデータを受け取るとき、Windows の既定文字コードで標準入力を読むと、
+  多バイト文字の境界がずれてJSON解析に失敗し、スクリプトは例外で落ちます。
+  そして<strong>終了コード 2 以外の非ゼロは「hook自身のエラー」として無視されます。</strong>
+  差し戻しの合図が終了コード 2 だけなので、それ以外の異常はすべて沈黙になります。</p>
+
+  <p>画面には何も出ません。設定されていて、毎回起動していて、毎回落ちていて、一度も検証していない
+  ── この状態が何日も続きます。対策は1行です（標準入力をバイト列で読み、明示的にUTF-8でデコードする）。
+  <strong>問題は、対策の難しさではなく、壊れていることに気づけないことです。</strong></p>
+
+  <div class="callout warn">
+    <span class="title">導入したら、必ず「わざと違反して、鳴ること」を確認してください。</span>
+    書いた直後に1回だけです。これをやらないと<strong>「動いているつもりで動いていない hook」</strong>が手元に積み上がります。
+    ゲートがあると思って安心している状態は、ゲートがないと分かっている状態より危険です。
+  </div>
+
+  <p>6章では、これとまったく同じ失敗が<strong>効果測定の側でも起きていた</strong>ことに触れます。</p>
+</section>
+
+<!-- ===================== 6 ===================== -->
+<section id="s6">
+  <h2><span class="num">6</span>効果は測れているのか</h2>
+
+  <p>結論から言えば、<strong>量的には「悪化していない」としか言えず、質的には「指摘の中身が変わった」と言える</strong>、という状態です。</p>
+
+  <h3>量：数値では言い切れない</h3>
+
+  <p>会話ログから<strong>修正指摘率</strong>（＝AIの出力に対してユーザーが訂正・やり直しを入れた割合）を
+  週次で自動集計しています。ルール運用開始後の約2か月は <strong>2.3% → 2.0〜2.1%</strong> で横ばいでした。
+  少なくとも、指標が跳ねたら「ルールが形骸化した」と気づける状態にはなっています。</p>
+
+  <div class="callout warn">
+    <span class="title">ただし、導入前後の比較はできていません</span>
+    ルールの運用開始と、集計ロジックの改修（誤検知の除外）が<strong>ほぼ同時期だった</strong>ためです。
+    測定の物差しを、測りたい変化と同じ時期に変えてしまうと、その前後は永久に繋がりません。
+  </div>
+
+  <div class="callout bad">
+    <span class="title">さらに、計測そのものが黙って壊れていました</span>
+    ある時期、2週続けて「前回比：同等」と出ていましたが、実際は<strong>新規データがほとんど入っていませんでした。</strong>
+    収集対象が1プロジェクトに固定されており、主戦場が別リポジトリに移った時点でログを拾えなくなっていたためです。
+    <p style="margin:8px 0 0"><strong>「同等」という無害な表示で、壊れていることが2週間隠れていた。</strong>
+    5章の「動いているつもりで動いていない hook」と、まったく同じ失敗です。
+    <strong>hook も計測も、「沈黙」と「正常」が区別できない形にしてはいけない</strong>ということに尽きます。</p>
+  </div>
+
+  <h3>質：指摘の「中身」は入れ替わった</h3>
+
+  <p>一方、実際に受けた修正指摘を蓄積した事例集（4章で触れた記録の副産物です）を運用前後で読み比べると、
+  <strong>指摘の種類そのものが入れ替わっています。</strong></p>
+
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:24%">指摘の種類</th><th style="width:40%">運用開始前によくあったもの</th><th>現在</th></tr>
+    <tr><td><strong>文字コード</strong></td><td>「文字化けしてるので、確認して直して」</td><td rowspan="4" style="color:var(--good);font-weight:600;vertical-align:middle">ほぼ消滅<br><span style="font-weight:400;color:var(--sub);font-size:13px">（いずれも hook を書いた項目）</span></td></tr>
+    <tr><td><strong>動作確認</strong></td><td>「エラーが出てるので確認して修正して」</td></tr>
+    <tr><td><strong>ドキュメント同期</strong></td><td>「とりあえずREADMEは修正して」「一応仕様書も直して」</td></tr>
+    <tr><td><strong>対象範囲</strong></td><td>「その2項目は残してください（消さないで）」</td></tr>
+    <tr><td><strong>残っているもの</strong></td><td colspan="2">「この条件を追加して、本来の仕様に合わせて」「データフロー図に、この経路が載っていない」
+      ── <strong>仕様の解釈と設計判断</strong></td></tr>
+  </table>
+  </div>
+
+  <div class="callout key">
+    <span class="title">消えた指摘は、そのまま hook を書いた項目と一致しています。</span>
+    そして残ったのは、<strong>人間が判断するしかないことだけ</strong>です。
+    手順の抜けを指摘するのに使っていた時間が、仕様の詰めに向くようになった
+    ── <strong>これが、数値には出ていない実際の変化です。</strong>
+  </div>
+
+  <div class="callout warn">
+    <span class="title">ただし、これは主観的な分類です</span>
+    事例集を筆者が読んで分類したもので、統計的な検証ではありません。件数の減少幅（運用前33件／運用後10件）も、
+    収集の網羅性が落ちている可能性があるため根拠にしていません。
+    <strong>「指摘の構成比が変わった」という定性的な観察</strong>として受け取ってください。
+  </div>
+</section>
+
+<!-- ===================== 7 ===================== -->
+<section id="s7">
+  <h2><span class="num">7</span>導入コストと落とし穴</h2>
+
+  <h3>やってはいけない導入の仕方</h3>
+
+  <div class="callout bad">
+    <span class="title">❌ いきなり全部入れる</span>
+    ルール20個＋hook 10本を一度に入れると、誤検知と通知の洪水で3日で外すことになります。
+  </div>
+  <div class="callout bad">
+    <span class="title">❌ 人の設定をそのままコピーする</span>
+    関係のないルールが混ざった規範は、全体の信頼度を下げます（4章）。
+  </div>
+  <div class="callout bad">
+    <span class="title">❌ 最初からブロックする</span>
+    信頼を失った hook は二度と使われません（5章）。
+  </div>
+
+  <h3>薦める始め方</h3>
+  <div class="card">
+    <ol style="margin-bottom:0">
+      <li><strong>自分が繰り返し指摘していることを1つ思い出す</strong><br>
+        <span style="color:var(--sub);font-size:13.5px">（例：「テストしてから報告して」を今週3回言った）</span></li>
+      <li><strong>それをルールとして CLAUDE.md に1行書く</strong></li>
+      <li><strong>それを検証する hook を1本だけ書く（通知のみ）</strong></li>
+      <li><strong>1〜2週間使い、鳴りすぎなら条件を絞る。効いていれば次の1本へ</strong></li>
+    </ol>
+  </div>
+  <div class="callout good"><strong>1ルール1hookずつ。これだけです。</strong></div>
+
+  <h3>継続コスト（正直なところ）</h3>
+  <div class="table-wrap">
+  <table class="bordered">
+    <tr><th style="width:40%">項目</th><th>実感</th></tr>
+    <tr><td>hook 1本の作成</td><td>30分〜1時間</td></tr>
+    <tr><td>誤検知の調整</td><td>導入後2週間ほど、たまに発生</td></tr>
+    <tr><td>ルールの見直し</td><td>月1回、10分程度</td></tr>
+    <tr><td><strong>放置したときの劣化</strong></td><td style="color:var(--bad)"><strong>半年で「動かない設定」になる</strong></td></tr>
+  </table>
+  </div>
+
+  <div class="callout warn">
+    最後が最大のリスクです。<strong>使い続けている人がいて初めて維持されます。</strong>
+    チームで共有する場合、誰が面倒を見るかを先に決める必要があります。
+    6章の計測の件が示すとおり、<strong>壊れても静かに壊れる</strong>のがこの手の仕組みの性質です。
+  </div>
+</section>
+
+<footer>
+  2026-09-17<br>
+  記載の運用は個人環境での実践に基づく個人の見解であり、特定の基準・標準を示すものではありません。
+  <p style="margin-top:12px"><a href="index.html" style="color:var(--accent);text-decoration:none">&larr; Knowledges に戻る</a></p>
+</footer>
+
+</div>
+</body>
+</html>
