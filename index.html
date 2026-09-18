@@ -1,43 +1,43 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home | Portfolio</title>
+<title>Portal</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-transition">
 <header class="site-header">
   <div class="container header-inner">
     <a href="index.html" class="logo">Your Name</a>
-    <button class="nav-toggle" aria-label="メニューを開閉" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-    <nav class="site-nav">
-      <a href="index.html" class="nav-link is-active">Home</a>
-      <a href="works.html" class="nav-link">Works</a>
-    </nav>
   </div>
 </header>
 
 <main>
   <section class="hero container">
-    <p class="hero-eyebrow">Portfolio</p>
+    <p class="hero-eyebrow">Portal</p>
     <h1 class="hero-title">Your Name</h1>
     <p class="hero-lead">
-      基幹システム開発を中心に、SE補助からプロジェクトリーダーまで幅広く経験。<br>
-      直近ではAI駆動開発の導入にも取り組んでいます。
+      実績紹介・技術共有・技術検証をフォルダ単位で公開しています。<br>
+      それぞれ下記から移動してください。
     </p>
-    <a href="works.html" class="button">Works を見る</a>
   </section>
 
   <section class="section container">
-    <h2 class="section-title">About</h2>
-    <p class="section-text">
-      2023年にエンジニアとしてキャリアを開始し、約3年間、基幹システム刷新プロジェクトを中心に要件定義から設計・開発・テスト・保守まで一貫して経験。<br>
-      直近ではプロジェクトリーダーとしてWebフロントエンド開発を主導する傍ら、AI駆動開発の導入やソースコード管理のSVNからGitHubへの移行推進など、開発プロセス改善にも取り組んでいます。<br>
-      保有資格: 基本情報技術者 / 日商簿記検定2級
-    </p>
+    <div class="portal-grid">
+      <a class="portal-card" href="person/index.html">
+        <h2 class="portal-card-title">Person</h2>
+        <p class="portal-card-desc">経歴・実績紹介ページ。</p>
+      </a>
+      <a class="portal-card" href="knowledges/index.html">
+        <h2 class="portal-card-title">Knowledges</h2>
+        <p class="portal-card-desc">技術共有ページ。</p>
+      </a>
+      <a class="portal-card" href="playground/index.html">
+        <h2 class="portal-card-title">Playground</h2>
+        <p class="portal-card-desc">技術検証・遊びページ。</p>
+      </a>
+    </div>
   </section>
 </main>
 
