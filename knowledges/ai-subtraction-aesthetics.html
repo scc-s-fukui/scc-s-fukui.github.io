@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIに引き算の美学を持たせる</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --sub: #6b7280;
+    --accent: #2563eb;
+    --accent-dark: #1e40af;
+    --accent-light: #eff6ff;
+    --good: #059669;
+    --good-light: #ecfdf5;
+    --warn: #d97706;
+    --warn-light: #fffbeb;
+    --bad: #dc2626;
+    --bad-light: #fef2f2;
+    --line: #e5e7eb;
+    --bg: #f9fafb;
+    --card: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Yu Gothic UI", "Hiragino Sans", Meiryo, sans-serif;
+    color: var(--ink); background: var(--bg); line-height: 1.85; font-size: 15.5px;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  /* ===== ヒーロー ===== */
+  header.hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+    color: #fff; border-radius: 16px; padding: 40px 40px 34px; margin-bottom: 28px;
+  }
+  header.hero h1 { font-size: 30px; margin-bottom: 10px; letter-spacing: .02em; line-height: 1.4; }
+  header.hero .lead { font-size: 17px; opacity: .92; font-weight: 300; }
+  header.hero .meta { opacity: .8; font-size: 13px; margin-top: 18px; }
+  header.hero .badges { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .badge {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+    border-radius: 999px; padding: 4px 14px; font-size: 13px;
+  }
+
+  /* ===== 目次 ===== */
+  nav.toc {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 24px; margin-bottom: 32px; font-size: 14px;
+  }
+  nav.toc b { display: block; margin-bottom: 8px; color: var(--sub); font-size: 12.5px; letter-spacing: .08em; }
+  nav.toc a { color: var(--accent); text-decoration: none; margin-right: 18px; white-space: nowrap; line-height: 2; display: inline-block; }
+  nav.toc a:hover { text-decoration: underline; }
+
+  /* ===== セクション ===== */
+  section { margin-bottom: 48px; scroll-margin-top: 20px; }
+  h2 {
+    font-size: 21px; margin-bottom: 18px; padding-bottom: 9px;
+    border-bottom: 2px solid var(--accent); display: flex; align-items: center; gap: 10px;
+  }
+  h2 .num {
+    background: var(--accent); color: #fff; border-radius: 8px; font-size: 13px;
+    padding: 2px 10px; font-weight: 600; flex: none;
+  }
+  h3 { font-size: 16.5px; margin: 28px 0 10px; color: var(--accent-dark); }
+  h4 { font-size: 15px; margin: 22px 0 6px; }
+  p { margin-bottom: 13px; }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 6px; }
+  strong { font-weight: 600; }
+  code {
+    background: #f3f4f6; border: 1px solid var(--line); border-radius: 4px;
+    padding: 1px 6px; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 13px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 26px; margin-bottom: 16px;
+  }
+
+  /* ===== テーブル ===== */
+  .table-wrap { overflow-x: auto; margin-bottom: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--card); }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--accent-light); color: var(--accent-dark); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  table.bordered { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  td.em { font-weight: 600; }
+
+  /* ===== 引用・強調ブロック ===== */
+  .quote {
+    background: var(--card); border-left: 4px solid var(--accent);
+    padding: 16px 22px; margin: 16px 0; border-radius: 0 10px 10px 0;
+    font-size: 15px; color: var(--accent-dark);
+  }
+  .callout { border-radius: 10px; padding: 16px 22px; margin: 16px 0; font-size: 14.5px; }
+  .callout .title { font-weight: 600; margin-bottom: 6px; display: block; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.key { background: var(--accent-light); border: 1px solid #bfdbfe; color: var(--accent-dark); }
+  .callout.good { background: var(--good-light); border: 1px solid #a7f3d0; }
+  .callout.warn { background: var(--warn-light); border: 1px solid #fde68a; }
+  .callout.bad  { background: var(--bad-light);  border: 1px solid #fecaca; }
+
+  /* ===== コード ===== */
+  pre {
+    background: #1f2937; color: #e5e7eb; border-radius: 10px;
+    padding: 14px 18px; margin: 10px 0 16px; overflow-x: auto;
+    font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 13px; line-height: 1.7;
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+  pre .c-bad { color: #fca5a5; }
+  pre .c-good { color: #86efac; }
+  pre.plain { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+
+  /* ===== 要点カード ===== */
+  .takeaways { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .takeaway {
+    flex: 1 1 240px; background: var(--card); border: 1px solid var(--line);
+    border-top: 4px solid var(--accent); border-radius: 12px; padding: 20px 22px;
+  }
+  .takeaway .tnum {
+    display: inline-block; background: var(--accent); color: #fff; width: 26px; height: 26px;
+    border-radius: 50%; text-align: center; line-height: 26px; font-size: 14px; font-weight: 700; margin-bottom: 10px;
+  }
+  .takeaway .tmain { font-weight: 600; font-size: 15px; margin-bottom: 6px; line-height: 1.6; }
+  .takeaway .tsub { font-size: 13.5px; color: var(--sub); line-height: 1.7; }
+
+  /* ===== ここで終わってよい ===== */
+  .stopline {
+    background: var(--card); border: 2px dashed var(--accent); border-radius: 12px;
+    padding: 20px 24px; margin: 26px 0 8px;
+  }
+  .stopline .sl-title { font-weight: 700; color: var(--accent-dark); font-size: 16px; margin-bottom: 8px; }
+  .stopline table { font-size: 13.5px; }
+  .stopline th { white-space: nowrap; }
+
+  /* ===== 長文サンプルのスクロール枠 ===== */
+  .scrollbox {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 18px; margin: 14px 0; max-height: 130px; overflow-y: auto;
+    font-size: 13.5px; line-height: 1.9; color: var(--sub);
+  }
+  .scrollbox .sb-tag {
+    display: block; font-size: 12px; font-weight: 600; color: var(--bad);
+    margin-bottom: 6px;
+  }
+  .jeer {
+    font-weight: 700; color: var(--bad); font-size: 15px; margin: 10px 0 18px;
+  }
+
+  /* ===== Before / After ===== */
+  .duo { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .duo > div { flex: 1 1 320px; }
+  .ba {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 18px; font-size: 13.5px; line-height: 1.85; height: 100%;
+  }
+  .ba.before { border-left: 4px solid var(--bad); }
+  .ba.after  { border-left: 4px solid var(--good); }
+  .ba .ftag { font-size: 12px; font-weight: 600; color: var(--sub); display: block; margin-bottom: 8px; }
+  .ba .q { font-weight: 600; color: var(--accent-dark); }
+
+  /* ===== フッター ===== */
+  footer {
+    margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--line);
+    font-size: 13px; color: var(--sub);
+  }
+
+  /* ===== 印刷 ===== */
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .container { max-width: none; padding: 0; }
+    header.hero { background: var(--accent-dark) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    nav.toc { display: none; }
+    section { page-break-inside: auto; }
+    h2 { page-break-after: avoid; }
+    .card, .callout, .takeaway, .stopline, table { page-break-inside: avoid; }
+    pre { background: #f3f4f6 !important; color: #1f2937 !important; border: 1px solid #d1d5db; }
+  }
+  @media (max-width: 640px) {
+    header.hero { padding: 28px 22px; }
+    header.hero h1 { font-size: 23px; }
+    .card { padding: 18px 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <h1>AIに引き算の美学を持たせる</h1>
+  <div class="lead">「もっと短く」と毎回言わないための設計</div>
+  <div class="badges">
+    <span class="badge">結論だけなら2分</span>
+    <span class="badge">全文の読了目安 20分</span>
+    <span class="badge">対象：AIツールを使っている人（エンジニア／非エンジニア）</span>
+    <span class="badge">前提知識：不要</span>
+  </div>
+  <div class="meta">2026-09-18</div>
+</header>
+
+<nav class="toc">
+  <b>目次</b>
+  <a href="#s0">結論</a>
+  <a href="#s1">1. 何が起きているか</a>
+  <a href="#s2">2. なぜAIは引き算ができないのか</a>
+  <a href="#s3">3. 実際にやっていること</a>
+  <a href="#s4">4. 再現手順</a>
+  <a href="#s5">5. 効果</a>
+  <a href="#s6">6. 落とし穴・適用境界</a>
+</nav>
+
+<section id="s0">
+  <h2><span class="num">結論</span>生まれる量を、先に絞る</h2>
+
+  <p>AIの出力は放っておくと増える。性能の問題ではなく、<strong>削るのに必要な情報（この文は誰の判断に使われるか）が会話の中に無い</strong>ことによる構造的な結果である。<br>
+  だから「簡潔に」と指示しても効かない。<strong>生まれる量を先に絞る</strong>しかない。置き場所は3つ。</p>
+
+  <div class="takeaways">
+    <div class="takeaway">
+      <span class="tnum">1</span>
+      <div class="tmain">残すものを定義する</div>
+      <div class="tsub">消すものを並べるのをやめ、<strong>残すもの</strong>を書く。判断材料と、判断してほしいこと。この2種類だけ。</div>
+    </div>
+    <div class="takeaway">
+      <span class="tnum">2</span>
+      <div class="tmain">生成・蓄積の既定値</div>
+      <div class="tsub">詳細版を既定で作らない。他を見れば分かることは覚えさせない。</div>
+    </div>
+    <div class="takeaway">
+      <span class="tnum">3</span>
+      <div class="tmain">提出直前の機械チェック</div>
+      <div class="tsub">順序・表現・分量を機械に見せる。スクリプトが書けないなら、手動のチェックリストでも成立する。</div>
+    </div>
+  </div>
+
+  <div class="callout key">
+    <span class="title">適用する成果物を先に決める</span>
+    <p>筆者が適用しているのは <strong>Issue / PR へのコメントと、AIに覚えさせる記憶の2つだけ</strong>。<strong>README・運用手順書・設計書は対象外</strong>（削りすぎは運用事故に直結する）。長いことが正解の成果物は実在する。<br>
+    そして<strong>引き算の仕組みには、引き算を拒否できる出口を必ず持たせる</strong>。上限を絶対の禁止にすると、意図して長い成果物が作れなくなって運用が止まる。</p>
+  </div>
+
+  <div class="callout warn">
+    <span class="title">なぜ急ぐか</span>
+    <p>書く側が削らなければ、読む側はAIに要約させる。<strong>AIが書いてAIが読み、原文を誰も読んでいない状態</strong>が普通に成立する。<br>
+    引き算は読み手への親切ではなく、<strong>判断の材料を人間の手元に残すための措置</strong>である。</p>
+  </div>
+
+  <div class="callout good">
+    <span class="title">今日15分でできること</span>
+    <p>自分宛てに届いた共有・依頼・報告を1本開き、「これが無いと判断できない」文だけに印を付ける。<br>
+    印が付いた文が、あなたの職場における「残すもの」の定義になる。<strong>印が付かなかった文に共通する種類</strong>（経緯の説明・心証・主題外の近況…）が、削ってよいものの候補である。<br>
+    ここまでで15分。仕組みとして仕掛けるところまで含めても、初回90分あれば終わる（4章）。</p>
+  </div>
+
+  <div class="stopline">
+    <div class="sl-title">本稿はここで終わってよい。</div>
+    <p>以降は、これを自分の職場で運用に落とすための材料である。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>章</th><th>読む価値がある人</th></tr>
+        <tr><td><a href="#s1">1. 何が起きているか</a></td><td>「うちだけの問題か」を知りたい人</td></tr>
+        <tr><td><a href="#s2">2. なぜAIは引き算ができないのか</a></td><td>「簡潔に」と指示し続けている人</td></tr>
+        <tr><td><a href="#s3">3. 実際にやっていること</a></td><td>仕掛けの実物を見たい人</td></tr>
+        <tr><td><a href="#s4">4. 再現手順</a></td><td>今週やる人</td></tr>
+        <tr><td><a href="#s5">5. 効果</a> / <a href="#s6">6. 落とし穴</a></td><td>導入を人に説明する立場の人</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="s1">
+  <h2><span class="num">1</span>何が起きているか</h2>
+
+  <h3>書く側：毎回「短くして」と打っている</h3>
+  <p>Issue へ返すコメントの案をAIに作らせる。返ってくる。読む。そして毎回こう打つ。</p>
+  <div class="quote">長すぎる、もっと短くできないか</div>
+
+  <p>自分の会話ログを数えてみた。対象は 2026-05-29〜2026-09-18 の約3.7か月、自分が手で打った発言 2,008件（自動挿入されるシステムメッセージ・フックの通知・2,000字を超える貼り付けは除外）。</p>
+
+  <div class="table-wrap">
+    <table class="bordered">
+      <tr><th>打った指示</th><th>件数</th><th>割合</th></tr>
+      <tr><td>「不要」「いらない」</td><td>87件</td><td>4.3%</td></tr>
+      <tr><td>「簡潔に」「短く」</td><td>59件</td><td>2.9%</td></tr>
+      <tr><td>「削って」</td><td>7件</td><td>0.3%</td></tr>
+      <tr><td>「絞って」</td><td>7件</td><td>0.3%</td></tr>
+      <tr><td class="em">いずれか1つ以上を含む発言（重複排除）</td><td class="em">141件</td><td class="em">7.0%</td></tr>
+    </table>
+  </div>
+
+  <p><strong>約14発言に1回、何かを引き算する指示を出している。</strong><br>
+  直近3週間のログを並べると、同じことを繰り返し打っているのが分かる。</p>
+
+<pre><code>2026-08-28 | これらの内容はすべて削って
+2026-08-31 | 経営層も読めるように、具体的な命名やコミットなどの情報は削って
+2026-09-10 | 内容多すぎたので一度消しました。自分で書くので、（略）コピペできる形でチャットください
+2026-09-10 | 長い。もっとシンプルに。
+2026-09-14 | まずはコミットメッセージを考えて。内容はシンプルに。
+2026-09-17 | もっと短くして</code></pre>
+
+  <p>最悪だったのは 2026-09-10 の「内容多すぎたので一度消しました。自分で書くので」。<br>
+  <strong>読む時間と削る時間の合計が、自分で書く時間を超えている。</strong> ここまで来るとAIを使った意味が無い。</p>
+
+  <h3>読む側：画面いっぱいの確認依頼が飛んできた</h3>
+  <p>もう一方の側も経験している。確認依頼が1通、画面を埋めるボリュームで届く。読み始める前に気力が削がれ、実際にやったのはこれだった。実物を1つ、削らずに貼る。</p>
+
+  <div class="scrollbox">
+    <span class="sb-tag">実際に届いたメッセージ（無編集・スクロール可）</span>
+    お疲れ様です。いつも大変お世話になっております。ご相談いただいておりました検索画面の絞り込み条件追加の件、進捗のご報告とご確認をさせてください。まず今回の対応にあたり、既存の一覧画面のソースを一通り確認いたしました。現状の実装では条件がコンポーネント内にベタ書きされており、拡張性の観点でやや懸念のある構造になっておりましたが、今回のスコープでは大きなリファクタリングは行わず、既存の設計方針を踏襲する形で最小限の変更に留めることにいたしました。あわせて、類似の画面で同様の実装がなされていないかも確認しましたが、該当するものは見当たりませんでした。念のため申し添えますと、今回追加する条件はあくまで表示上の絞り込みであり、サーバー側のクエリには影響を与えない設計としております。この点、後続の改修時にご留意いただければ幸いです。なお、対応中に軽微なリンティングの警告が出ておりましたが、既存コードに起因するものであり、今回の変更とは無関係と判断し、そのままにしております。長くなりましたが、以上を踏まえまして、ご依頼いただいておりました絞り込み条件の追加については、実装が完了いたしましたのでご報告いたします。ご確認のほどよろしくお願いいたします。
+  </div>
+  <p class="jeer">「実装した」と書くだけで、この厚みが要るか。</p>
+
+  <div class="quote"><strong>AIに要約させて、要約だけを読んだ。</strong></div>
+  <p>その場は助かった。しかし、成立している状態を並べると具合が悪い。</p>
+
+<pre class="plain"><code>送る側：  AIに書かせる（長い）
+           ↓
+受ける側： AIに要約させる（短くなる）
+           ↓
+人間が読むのは要約だけ</code></pre>
+
+  <p>原文を誰も読んでいない。しかも要約は「どの文が重要か」の判定をAIに委ねる作業である。つまり、送る側が削らなかった結果、<strong>判断材料の選別が自動化された</strong>。落ちた情報があっても、送る側も受ける側も気づけない。</p>
+  <p>引き算の責任は書く側にある。受け取ってから要約するのは事後処理で、欠落を検知できない。</p>
+</section>
+
+<section id="s2">
+  <h2><span class="num">2</span>なぜAIは引き算ができないのか</h2>
+  <p>「もっと簡潔に書いてくれればいいのに」は、感想としては正しいが対策にはならない。理由が3つある。</p>
+
+  <div class="card">
+    <h4>理由1: 削るための情報が会話の中に無い</h4>
+    <p>文章を削る作業は「この文は誰の判断に使われるか」を判定する作業である。読み手が業務担当者ならファイルパスやテーブル名は削れるが、実装者ならそれこそが判断材料で削れない。この判定に要る情報は、たいてい依頼文に書かれていない。情報が無い状態で削れば、消してはいけないものを消す。だから網羅的に書くのは安全側の挙動であり、<strong>AIは怠けているのではなく安全に振っている</strong>。</p>
+
+    <h4>理由2: 出てくるのは読み手向けの文書ではなく、思考の記録である</h4>
+    <p>長い出力から自分が削っている箇所を分類したら、①前置き・背景 ②念のための但し書き ③言い換えによる重複 ④細かすぎる実装詳細 の4種すべてだった。特定の癖ではない。原因は表現の冗長さではなく、<strong>考えた順序のまま出力されている</strong>ことにある。人間の下書きも同じだが、人間は提出前に読み手の順序へ組み替える工程を無意識に挟む。AIはその工程を依頼されていない。</p>
+
+    <h4>理由3: 引き算の指示は検証できない</h4>
+    <div class="table-wrap">
+      <table class="bordered">
+        <tr><th>指示の向き</th><th>例</th><th>守られたかの判定</th></tr>
+        <tr><td>足し算</td><td>「テスト結果も書いて」</td><td>できる（有無を見ればよい）</td></tr>
+        <tr><td>引き算</td><td>「簡潔に書いて」</td><td>できない（何字なら簡潔かの合意が無い）</td></tr>
+      </table>
+    </div>
+    <p>判定できない指示は確率的にしか守られず、会話が長くなるほど薄まる。つまり<strong>「簡潔に」は、一番効いてほしい長時間作業の終盤でこそ効かなくなる</strong>。</p>
+  </div>
+
+  <h3>ここから出る対策</h3>
+  <ul>
+    <li>理由1 → 読み手と用途を、毎回の依頼ではなく<strong>定義</strong>として持たせる（→ ①）</li>
+    <li>理由2 → 事後に削るのをやめ、<strong>生成する時点で提示形態を決める</strong>（→ ②）</li>
+    <li>理由3 → 長さではなく、<strong>二値で判定できる線</strong>に置き換える。順序を既定値として決め（→ ②）、守られたかは機械に見せる（→ ③）</li>
+  </ul>
+</section>
+
+<section id="s3">
+  <h2><span class="num">3</span>実際にやっていること</h2>
+  <p><strong>実運用しているのは、Issue / PR へのコメントと、AIに覚えさせる記憶の2つだけ</strong>である。設計書・README・運用手順書には適用していない（理由は<a href="#s6">6章</a>）。</p>
+
+  <h3>① 残すものを定義する</h3>
+  <p>コメント作成用のスキル定義（＝毎回の依頼文の代わりに読ませる手順書）に、原則を1つ置いた。</p>
+
+<pre><code>コメントに書いてよいのは次の2種類だけ。
+
+1. 相手が判断するために必要な事実（実データ、定義、食い違っている箇所）
+2. 相手に判断・対応してほしいこと（質問、確認事項、依頼）
+
+これ以外は、正しい内容でも削る。</code></pre>
+
+  <p>ポイントは<strong>「正しい内容でも削る」</strong>と明示したこと。「間違ったことを書くな」は誰でも守る。長文化の原因は、正しいが判断に使われない文である。</p>
+
+  <h4>なぜ「残すもの」で書いたか</h4>
+  <p>ここが設計上の分かれ目だった。<strong>消すものを列挙する方式（ブラックリスト）は際限なく増える。</strong>後述の分類表も、機械チェックが見ている語のリストも、新しい言い回しに出くわすたびに足している。</p>
+  <p>対して<strong>残すものは増えない</strong>。判断材料と依頼事項の2つで、今のところ増えていない。だから原則は残す側で書き、消す側の列挙は補助に格下げした。</p>
+  <p>では「残れば十分」と言える2つは、どこから出てきたか。<strong>過去に自分が出した削除指示を見返したら、毎回ちがう言い方で同じ判定をしていた。</strong></p>
+
+  <div class="table-wrap">
+    <table class="bordered">
+      <tr><th>過去に打った指示（抜粋）</th><th>そこで使っていた判定</th></tr>
+      <tr><td>この画面を参照するのは画面レイアウトの決定を行うユーザー側なので、具体的な配置手順などの専門的な内容は削って</td><td>読み手が<strong>何を決める人か</strong></td></tr>
+      <tr><td>経営層も読めるように、具体的な命名やコミットなどの情報は削って</td><td>同上（読み手が変われば残す情報も変わる）</td></tr>
+      <tr><td>メインの論点は◯◯なので、作成周りの情報は不要。リポジトリに関しても不要</td><td><strong>主題に寄与するか</strong></td></tr>
+      <tr><td>詳細な内容は、変更内容・コミットメッセージで伝わるはずなので、コメントは簡潔に</td><td><strong>他の場所で伝わるか</strong>（同じ情報を2箇所に置かない）</td></tr>
+      <tr><td>「得意先コードは3種類しかなく〜」← 妥当性を判断するのは回答側。事実だけ述べればよいので不要</td><td><strong>判断は相手の仕事</strong>。書き手は事実で止める</td></tr>
+      <tr><td>「修正しました」← リリースはまだなので不正確。不要</td><td><strong>正確でないものは書かない</strong></td></tr>
+      <tr><td>内容をもっとシンプルに、粒度も緩く。合っていてほしいのは並び順・大まかなサイズ・大まかな配置。最低限このレベルを保証できる形にしたい</td><td>削る前に<strong>何を保証したいか</strong>を先に決める</td></tr>
+    </table>
+  </div>
+
+  <p>この7つは、結局1つの問いに畳める。</p>
+  <div class="quote"><strong>この文は、読み手がこれから行う判断に使われるか。</strong></div>
+  <p>Yes なら残す。No なら、正しくても消す。<br>
+  「判断材料」と「判断してほしいこと」の2種類は、この問いを成果物の形に落としただけのものである。</p>
+
+  <div class="callout key">
+    <span class="title">文字数を基準にしなかった理由</span>
+    <p>字数は結果であって基準ではない。判断に使われない文が消えれば、長さは勝手に決まる。逆に字数だけを縛ると、判断材料の方が削られる。</p>
+  </div>
+
+  <h4>補助：迷ったときの分類表</h4>
+  <p>原則だけでは現場で迷うので、頻出パターンを具体語まで下ろした（抜粋）。あくまで補助である。</p>
+
+  <div class="table-wrap">
+    <table class="bordered">
+      <tr><th>種類</th><th>消す例</th><th>直し方</th></tr>
+      <tr><td>主観的評価・心証</td><td>「順調です」「問題なく」「〜と考えています」</td><td>数値・状態に置き換える</td></tr>
+      <tr><td>経緯・努力の説明</td><td>「〜を調査したところ」「〜を確認するために〜しました」</td><td>結論だけ書く</td></tr>
+      <tr><td>既出の言い直し</td><td>「この点からも〜」「以上を踏まえ〜」</td><td>消す。読み手は直前の行を読んでいる</td></tr>
+      <tr><td>主題以外</td><td>主題Aの質問に添える「Bは順調に進めています」</td><td>消す。必要なら別コメント</td></tr>
+    </table>
+  </div>
+
+  <p>同じ内容で書いた Before / After がこれ（社内固有の名称は伏せてある）。</p>
+
+  <div class="duo">
+    <div>
+      <div class="ba before">
+        <span class="ftag">Before（286字）</span>
+        お疲れ様です。いつも大変お世話になっております。◯◯一覧画面の検索条件の件について、現状のご報告と確認をさせてください。まず前提として、要件画面の更新をいただきありがとうございました。おかげさまで項目定義についてはしっかり確認することができ、大変助かりました。ただ、その後いろいろと調査を進めていく中で、処理Aのほうに管理番号の行が見当たらないことが分かり、取得元が不明であるため、現時点では実装に着手できていない状況となっております。なお、他の項目については順調に進んでおりますので、そちらはご安心ください。お忙しいところ恐縮ですが、ご確認のほどよろしくお願いいたします。
+      </div>
+    </div>
+    <div>
+      <div class="ba after">
+        <span class="ftag">After（107字）</span>
+        <strong>管理番号のデータ取得元の確認</strong><br><br>
+        項目定義（項目長13／例 A538363702-01）は確認できましたが、処理Aに管理番号の行がなく、取得元が不明のため実装に着手できていません。<br><br>
+        <span class="q">Q1. 取得元は処理Aで合っていますか</span>（違う場合は正しい処理の指定をお願いします）
+      </div>
+    </div>
+  </div>
+
+  <p>62%削った。<strong>消えたのは事実ではなく、挨拶・経緯・心証・主題外の近況</strong>である。読み手がやることは「Q1に答える」だけになった。</p>
+
+  <h4>自分の初稿は自分では削れない</h4>
+  <p>削る基準を書いても、<strong>同じ会話の中では削り切れない</strong>。「自分が調べたこと」「自分が対応したこと」は書き手にとっては意味があるからである。人間の文章でも同じで、他人に添削してもらうと一瞬で落ちる。</p>
+  <p>そこで、推敲だけを担当する別のAI（初稿の経緯を持たない、独立した会話）に渡す運用にした。</p>
+
+<pre class="plain"><code>初稿を書く（会話の文脈あり）
+      ↓ 本文と「読み手は誰か」だけを渡す
+推敲役のAI（初稿の経緯を知らない）
+      ↓ 推敲後の本文＋削った箇所の一覧
+採用する。削られた箇所は書き戻さない</code></pre>
+
+  <p>ルールを1つ足してある。<strong>「書き戻すなら、それが読み手の判断に必要な理由を自分で1文で言えるときだけ」</strong>。実際に書き戻しが起きたとき、削った版と見比べて2箇所とも戻さない判断になった。</p>
+
+  <h3>② 生成・蓄積の既定値</h3>
+  <p>事後に削る運用には限界がある（理由2の4種すべてが対象になるため追いつかない）。介入点を上流に移した。</p>
+
+  <div class="table-wrap">
+    <table class="bordered">
+      <tr><th>決定</th><th>理由</th></tr>
+      <tr><td class="em">詳細版は既定では作らない。聞かれたときだけ出す</td><td>「要点版＋詳細版」の併記は、生成量がむしろ増える</td></tr>
+      <tr><td class="em">冒頭に結論を置く（これだけは逸脱不可）</td><td>長さは目安にしか落とせないが、順序は二値で判定できる</td></tr>
+    </table>
+  </div>
+
+  <p>1つ目が効くのは、要約を足す運用と正反対だからである。要約を足すと読む量は減るが<strong>生まれる量は増える</strong>。<br>
+  2つ目は「長さを縛らず順序だけ縛る」妥協で、理由2の「考えた順序のまま出てくる」問題に機械的に効く唯一の線である。</p>
+
+  <p>覚えさせる仕組み（AIに引き継がせるメモ）にも同じ既定値を入れた。記憶は増えるほど索引が読まれなくなる。</p>
+  <ul>
+    <li>索引は<strong>1記憶＝1行</strong>。索引に内容を書かない</li>
+    <li>コード・履歴・手順書を見れば分かることは覚えない（現物を見れば出てくる情報を二重に持たない）</li>
+    <li>現物を見れば分かる主張には検証用の目印を持たせ、現物と食い違ったら印を付ける</li>
+  </ul>
+  <p>ただし<strong>印を付けるだけで自動削除はしない</strong>。誤検知で判断そのものが消えるのが最悪であるため。</p>
+
+  <h3>③ 提出直前の機械チェック</h3>
+  <p>基準を書いても守られない回がある（理由3）。そこで、コメントを投稿するコマンドの実行前に自動チェックを挟んだ（Claude Code の「フック」＝AIの動作の前後に自分のスクリプトを差し込む仕組みを使う。他ツールなら投稿前の手動チェックリストでも成立する）。</p>
+  <p>見るのは機械的に判定できるものだけ。</p>
+  <ul>
+    <li>地の文が900字超（コードブロック・画像・URL・空白は除外して数える）。<strong>字数は品質の基準ではなく、見直しを促す引き金として置いている</strong></li>
+    <li>主観的評価語・心証（「順調」「問題なく」「〜と考えています」…）の混入</li>
+    <li>説明的な前置き・文頭の「なお」「ちなみに」</li>
+    <li>回答を求めている節が2つ以上ある（＝1コメント1主題に反する）</li>
+  </ul>
+  <p>意図的に外した点が2つある。</p>
+  <ol>
+    <li><strong>削る判断はAIに返す。</strong> チェック側は「削れる可能性が高い箇所」を指摘するところまで。</li>
+    <li><strong>同じ本文での差し戻しは1回だけ。</strong> 意図して長い本文を出す場面で詰まらせない。</li>
+  </ol>
+</section>
+
+<section id="s4">
+  <h2><span class="num">4</span>再現手順</h2>
+
+  <div class="table-wrap">
+    <table class="bordered">
+      <tr><th>ステップ</th><th>内容</th><th>所要</th><th>前提</th></tr>
+      <tr><td>1</td><td><strong>受け取る側</strong>として、必要な情報とノイズを仕分ける</td><td>15分</td><td>—</td></tr>
+      <tr><td>2</td><td>成果物の種別ごとに「何が残れば十分か」を1文で決める</td><td>20分</td><td>—</td></tr>
+      <tr><td>3</td><td>既定を「要点版のみ」にする</td><td>15分</td><td>—</td></tr>
+      <tr><td>4</td><td>順序・表現・分量を機械チェックに回す</td><td>40分</td><td><strong>スクリプトが書けること</strong>。無理なら手動チェックリストで代替</td></tr>
+    </table>
+  </div>
+
+  <h3>ステップ1：受け取る側に立つ</h3>
+  <p>出発点は、書く側ではなく<strong>受け取る側</strong>である。使い始めたばかりでも、これから使う人でも、AIを使っていなくてもできる。</p>
+  <p>直近で自分宛てに届いた共有・依頼・報告を1本開き、全文を3つに仕分ける。</p>
+  <ol>
+    <li><strong>これが無いと判断できない</strong></li>
+    <li>あると助かるが、無くても判断はできる</li>
+    <li>読む必要がなかった</li>
+  </ol>
+  <p><strong>1に残ったものが、自分の職場における「残すもの」の定義</strong>である。そして<strong>2と3に共通する種類</strong>が、自分の職場で削ってよいものになる。ここまで来れば、書く側に回ったときの基準は書ける。</p>
+  <p>この順序で始める理由は、判定の質が違うからである。書く側で「相手に要るだろうか」を想像するのと、受け取る側で「自分はこの文を使ったか」を思い出すのとでは、後者の方が確実に当たる。<br>
+  そして受け取る側に立つと、削る対象が<strong>自分の作業量の説明</strong>であることに嫌でも気づく。</p>
+  <div class="callout key">
+    <p>すでにAIを日常的に使っているなら、自分の会話ログに「簡潔」「短く」「不要」が何回出てくるかを、AI自身に数えさせるのも早い。同じ趣旨の指示が何度も出てくるなら、それは個人の口癖ではなく、<strong>まだ実装していない設定</strong>と考える。</p>
+  </div>
+
+  <h3>ステップ2：残すものを1文で書く</h3>
+  <p>消すものではなく<strong>残すものを1文で書く</strong>。「この成果物は、何が残っていれば読み手の用が足りるか」に答えるだけでよい。字数は決めない。</p>
+  <p>対象はコメント・報告など「読み手が判断するための文書」に限り、設計書・READMEは対象外と最初に決める。長いことが正解の成果物があるため、全体に効く一律の基準は必ず破綻する。</p>
+
+  <h3>ステップ3：既定を「要点版のみ」にする</h3>
+  <p>手順書か指示書に1行入れる。「詳細版は既定では作らない。聞かれたときだけ出す」。<br>
+  削る工程を足すのではなく<strong>作る工程を減らす</strong>ため、費用対効果が最も高い。</p>
+
+  <h3>ステップ4：機械チェックに回す</h3>
+  <p>「冒頭に結論があるか」「主観的評価語が混じっていないか」「地の文が一定の長さを超えていないか」は機械で判定できる。提出の直前に置き、逸脱を1回だけ許す設計にする（詰まらせると運用が止まる）。</p>
+
+  <div class="callout good">
+    <span class="title">維持コスト</span>
+    <p>運用開始後に発生した手入れは2種類だけだった。誤検知した語をチェック対象から外すことと、900字の線を実態に合わせて直すこと。いずれも気づいたときに数分で終わる（発生頻度は計測していない）。</p>
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="num">5</span>効果</h2>
+
+  <div class="table-wrap">
+    <table class="bordered">
+      <tr><th>対策</th><th>効果</th><th>測定</th></tr>
+      <tr>
+        <td class="em">① 残すものを定義する<br>（＋別のAIによる推敲）</td>
+        <td>コメント1本 <strong>286字 → 107字</strong>（同一内容・62%減）。読み手のアクションが「文章から判断事項を探す」→「Q1に答える」に変わった。定義と推敲のどちらがどれだけ効いたかは分けて測っていない</td>
+        <td>実測</td>
+      </tr>
+      <tr>
+        <td class="em">② 生成・蓄積の既定値</td>
+        <td>「詳細版も作って」と頼まない限り出てこなくなった。記憶の索引が1画面に収まり続けている</td>
+        <td>体感のみ</td>
+      </tr>
+      <tr>
+        <td class="em">③ 提出直前の機械チェック</td>
+        <td>主観的評価語の混入は投稿前に止まるようになった</td>
+        <td>差し戻し発生の有無で確認</td>
+      </tr>
+    </table>
+  </div>
+
+  <p>数字にならないが大きいのは、<strong>「もっと短くして」と打つ工程が消えた</strong>こと。1回あたり数十秒だが回数が多く、しかも<strong>やっている本人が疲労として認識しにくい</strong>。1章の集計を取るまで、自分がそれを常習的にやっているとは思っていなかった。</p>
+
+  <div class="callout warn">
+    <span class="title">正直に書いておくと</span>
+    <p><strong>②の効果の測り方はまだ無い。</strong>修正指摘率のような指標では簡潔さは測れず、当面は体感判断である。ここは未解決のまま運用している。</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2><span class="num">6</span>落とし穴・適用境界</h2>
+
+  <div class="card">
+    <h4>一律の簡潔さ原則は採ってはいけない</h4>
+    <p>長い＝悪ではない。全成果物に適用すると、まず長尺が正解の成果物から壊れる。基準は必ず成果物の種別ごとに持つ。</p>
+
+    <h4>参照文書を削ると事故になる</h4>
+    <p>README・運用手順書・意思決定記録は対象外にした。これらは「読む時間」より「書いていないことによる事故」のコストが高い。設計書のレビューは網羅性を求める（＝加筆圧がかかる）仕組みのまま放置している。副作用は承知の上での判断である。</p>
+
+    <h4>順序だけ守った長文が出る余地は残っている</h4>
+    <p>長さを目安に格下げし、逸脱不可にしたのは「冒頭に結論」だけ。実効性がこの1本に依存しており、これは現在も残っているリスクである。</p>
+
+    <h4>出口の作り方</h4>
+    <p>機械チェックの900字は引き金であって合否ではない。同じ本文での差し戻しを1回に限っているのも同じ理由で、2回目は理由を問わず通す。長い成果物を意図して出す場面は必ず来る。</p>
+
+    <h4>引き算を自動化してよいのは、間違えても取り返しがつく範囲まで</h4>
+    <p>記憶の鮮度チェックは印を付けるところで止め、削除は人間が決める。</p>
+
+    <h4>削るべきは書き手の情報であり、読み手の情報ではない</h4>
+    <p>削って怒られるのは、たいてい読み手の判断材料を消したとき。3章の問い（読み手がこれから行う判断に使われるか）は、書き手の都合で答えを曲げないこと。</p>
+
+    <h4>チームに広げるなら、基準の合意が先</h4>
+    <p>個人が勝手に短くすると「手を抜いた」と受け取られる。先に「書いてよいのは判断材料と依頼事項の2種類」だけ合意しておけば、文量の話は起きなくなる。</p>
+  </div>
+</section>
+
+<footer>
+  2026-09-18<br>
+  記載の内容は個人環境での実践に基づく個人の見解であり、特定の基準・標準を示すものではありません。掲載している会話ログの抜粋と Before / After は、固有の名称を伏せたうえで掲載しています。
+  <p style="margin-top:12px"><a href="index.html" style="color:var(--accent);text-decoration:none">&larr; Knowledges に戻る</a></p>
+</footer>
+
+</div>
+</body>
+</html>
