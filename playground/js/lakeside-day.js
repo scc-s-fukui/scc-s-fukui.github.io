@@ -8,7 +8,7 @@
   var W = 240;
   var H = 100;
   var HZ = 64; // 水面の開始行（水平線）
-  var FPS = 8;
+  var FPS = 12;
 
   canvas.width = W;
   canvas.height = H;
@@ -299,8 +299,110 @@
     px[o + 3] = 255;
   }
 
+  // ---- 花火（城をクリックすると打ち上がる）----
+  var CASTLE_BOX = { x0: CASTLE_X - 11, x1: CASTLE_X + 11, y0: base - 26, y1: base };
+  var FIREWORK_COLORS = ["#ff5a5a", "#ffd23c", "#4ad8ff", "#ff7ae0", "#7cff6a", "#ffffff"].map(hex);
+  var rockets = [];
+  var sparks = [];
+
+  function launch() {
+    if (rockets.length + sparks.length / 30 >= 6) {
+      return;
+    }
+    rockets.push({
+      x: CASTLE_X + Math.round((rand() - 0.5) * 10),
+      y: base - 26,
+      vx: (rand() - 0.5) * 1.2,
+      targetY: 8 + Math.floor(rand() * 20),
+      color: FIREWORK_COLORS[Math.floor(rand() * FIREWORK_COLORS.length)]
+    });
+  }
+
+  function burst(r) {
+    var n = 26 + Math.floor(rand() * 10);
+    var power = 1.3 + rand() * 0.8;
+    var second = FIREWORK_COLORS[Math.floor(rand() * FIREWORK_COLORS.length)];
+    for (var k = 0; k < n; k++) {
+      var ang = (k / n) * Math.PI * 2 + rand() * 0.2;
+      var sp = power * (0.7 + rand() * 0.3);
+      sparks.push({
+        x: r.x,
+        y: r.y,
+        vx: Math.cos(ang) * sp,
+        vy: Math.sin(ang) * sp,
+        life: 0,
+        maxLife: 14 + Math.floor(rand() * 8),
+        color: k % 3 === 0 ? second : r.color
+      });
+    }
+  }
+
+  function updateFireworks() {
+    rockets = rockets.filter(function (r) {
+      r.y -= 3;
+      r.x += r.vx;
+      if (r.y <= r.targetY) {
+        burst(r);
+        return false;
+      }
+      return true;
+    });
+    sparks = sparks.filter(function (p) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.9;
+      p.vy = p.vy * 0.9 + 0.08;
+      p.life++;
+      return p.life < p.maxLife;
+    });
+  }
+
+  function sparkColor(p) {
+    var fade = p.life / p.maxLife;
+    return fade < 0.2 ? C.glitter : fade > 0.7 ? mix(p.color, C.cloudShade, 0.5) : p.color;
+  }
+
+  function drawFireworks() {
+    rockets.forEach(function (r) {
+      put(Math.round(r.x), Math.round(r.y), C.glitter);
+      put(Math.round(r.x - r.vx), Math.round(r.y) + 1, C.glitterDim);
+      put(Math.round(r.x - r.vx * 2), Math.round(r.y) + 2, C.glitterDim);
+    });
+    sparks.forEach(function (p) {
+      var fade = p.life / p.maxLife;
+      // 消え際はちらつかせる
+      if (fade > 0.75 && (p.life + Math.round(p.x)) % 2) {
+        return;
+      }
+      put(Math.round(p.x), Math.round(p.y), sparkColor(p));
+    });
+  }
+
+  function toScene(event) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * W,
+      y: ((event.clientY - rect.top) / rect.height) * H
+    };
+  }
+  function onCastle(p) {
+    return p.x >= CASTLE_BOX.x0 && p.x <= CASTLE_BOX.x1 && p.y >= CASTLE_BOX.y0 && p.y <= CASTLE_BOX.y1;
+  }
+  canvas.addEventListener("click", function (event) {
+    if (onCastle(toScene(event))) {
+      launch();
+      if (rand() < 0.4) {
+        launch();
+      }
+    }
+  });
+  canvas.addEventListener("pointermove", function (event) {
+    canvas.style.cursor = onCastle(toScene(event)) ? "pointer" : "";
+  });
+
   function draw(frame) {
     var t = frame / FPS;
+    var step = Math.floor(t * 8); // さざ波などはフレームレートに依存しない速さで動かす
     var x;
     var y;
 
@@ -355,7 +457,7 @@
         var c = mix(src, waterC, 0.5);
         c = [c[0] * 0.92, c[1] * 0.94, c[2] * 0.98];
         // 流れるさざ波のハイライト
-        if (rippleRow && (x + y * 13 + frame * (y % 2 ? 1 : -1) + 400) % 29 < 3) {
+        if (rippleRow && (x + y * 13 + step * (y % 2 ? 1 : -1) + 400) % 29 < 3) {
           c = mix(c, C.ripple, 0.5);
         }
         put(x, y, c);
@@ -364,7 +466,7 @@
 
     // 日差しの反射
     for (y = HZ + 1; y < H; y++) {
-      if ((y + (frame >> 1)) % 3 === 0) {
+      if ((y + (step >> 1)) % 3 === 0) {
         continue;
       }
       var dd = y - HZ;
@@ -398,21 +500,26 @@
       }
     });
 
+    drawFireworks();
+
     ctx.putImageData(image, 0, 0);
   }
 
+  // 動きを減らす設定の場合、景色は静止させ、クリックで上げた花火だけ動かす
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduceMotion) {
-    draw(0);
-    return;
-  }
 
   var frame = 0;
   var last = 0;
   function loop(now) {
     if (now - last >= 1000 / FPS) {
       last = now;
-      draw(frame++);
+      var active = rockets.length || sparks.length;
+      updateFireworks();
+      if (!reduceMotion) {
+        draw(frame++);
+      } else if (active) {
+        draw(0);
+      }
     }
     window.requestAnimationFrame(loop);
   }
