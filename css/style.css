@@ -81,6 +81,25 @@ a {
   margin: 0 0 32px;
 }
 
+/* Hero pixel-art scene（レトロRPGのウィンドウ風の枠） */
+.scene-frame {
+  border: 3px solid #e8e9ec;
+  border-radius: 8px;
+  padding: 3px;
+  background-color: #0a0c28;
+  box-shadow: 0 0 0 3px #1a1d4a, 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.scene-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 240 / 100;
+  border-radius: 4px;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
 /* Sections */
 .section {
   padding: 48px 24px;
