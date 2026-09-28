@@ -8,11 +8,22 @@ https://scc-s-fukui.github.io/
 
 ## 構成
 
-フォルダ単位でページを追加できる構成。ページ遷移（ナビ・フェード演出）は各フォルダ内で完結させ、フォルダ間の行き来はポータルとフッターのリンクのみで行う。ヘッダー/フッター/CSS/JS はフォルダごとに独立して持つ（共通化はしていない）。
+Next.js（App Router）+ TypeScript製。`next build`（`output: "export"`）で静的HTMLに書き出し、GitHub Actions（`.github/workflows/deploy.yml`）でGitHub Pagesに自動デプロイする。
 
-- `index.html`, `css/`, `js/` — ルート。各フォルダへの入口となるポータル
-- `person/` — 実績紹介ページ（`index.html` = Home/About, `works.html` = Works）
-- `knowledges/` — 技術共有ページ（雛形のみ、順次追加）
-- `playground/` — 技術検証・遊びページ（雛形のみ、順次追加）
+- `app/` — ページ（ルーティングはフォルダ構成がそのままURLになる）
+  - `page.tsx` — ポータル（トップページ）
+  - `person/` — 実績紹介ページ（`page.tsx` = Home/About, `works/page.tsx` = Works）
+  - `knowledges/` — 技術共有ページ（一覧 + 記事ページ）
+  - `playground/` — 技術検証・遊びページ
+- `components/` — 共通コンポーネント（Header, Footer, Canvas演出）
+- `docs/adr/` — 設計判断の記録（リポジトリ管理外・ローカル専用）
 
-新しいページ群を追加する場合は、上記と同様に独立したフォルダ（`css/`, `js/` を含む）を切って `index.html` から入口となるリンクを足す。
+## 開発
+
+```bash
+npm install
+npm run dev    # http://localhost:3000
+npm run build  # 静的書き出し（out/）
+```
+
+新しいページを追加する場合は `app/` 配下にフォルダ＋`page.tsx` を追加する。
