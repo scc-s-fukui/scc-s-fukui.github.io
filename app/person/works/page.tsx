@@ -37,7 +37,7 @@ export default function PersonWorksPage() {
                   ))}
                 </div>
                 <h3 className="mx-4 mt-4 mb-2 text-base font-medium text-ink">{work.title}</h3>
-                <p className="mx-4 mb-4 text-sm text-muted">{work.desc}</p>
+                <p className="mx-4 mb-4 text-sm whitespace-pre-line text-muted">{work.desc}</p>
               </article>
             ))}
           </div>

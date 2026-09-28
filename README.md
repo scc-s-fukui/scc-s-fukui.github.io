@@ -41,4 +41,4 @@ npm run build  # 静的書き出し（out/）
 }
 ```
 
-配列の順番がそのまま表示順になる。編集後は `npm run dev` で見た目を確認し、コミット・pushすればGitHub Actions経由で公開される。
+配列の順番がそのまま表示順になる。`desc` 内に `\n` を入れるとその位置で改行される（例: `"desc": "1行目\n2行目"`）。編集後は `npm run dev` で見た目を確認し、コミット・pushすればGitHub Actions経由で公開される。
