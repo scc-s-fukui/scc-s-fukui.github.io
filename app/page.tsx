@@ -10,14 +10,17 @@ export default function PortalPage() {
 
       <main>
         <section className="mx-auto max-w-content px-6 pt-24 pb-16">
-          <p className="mb-3 text-sm tracking-widest text-accent uppercase">Portal</p>
-          <h1 className="mb-5 text-4xl font-bold text-ink sm:text-5xl">S.Fukui</h1>
+          <p className="mb-3 text-sm tracking-widest text-accent uppercase">
+            Portal
+          </p>
+          <h1 className="mb-5 text-4xl font-bold text-ink sm:text-5xl">
+            S.Fukui
+          </h1>
           <p className="mb-8 max-w-lead text-muted">
             実績紹介・技術共有・技術検証をフォルダ単位で公開しています。
             <br />
             それぞれ下記から移動してください。
           </p>
-          <LakesideScene />
         </section>
 
         <section className="mx-auto max-w-content border-t border-line px-6 py-12">
@@ -44,6 +47,10 @@ export default function PortalPage() {
               <p className="text-sm text-muted">技術検証・遊びページ。</p>
             </Link>
           </div>
+        </section>
+
+        <section className="mx-auto max-w-content px-6 pb-16">
+          <LakesideScene />
         </section>
       </main>
 
