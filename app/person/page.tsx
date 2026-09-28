@@ -9,26 +9,29 @@ const NAV_ITEMS = [
 
 export default function PersonHomePage() {
   return (
-    <div className="page-transition">
+    <div className="animate-fade-in opacity-0">
       <Header logoLabel="S.Fukui" navItems={NAV_ITEMS} />
 
       <main>
-        <section className="hero container">
-          <p className="hero-eyebrow">Portfolio</p>
-          <h1 className="hero-title">S.Fukui</h1>
-          <p className="hero-lead">
+        <section className="mx-auto max-w-[960px] px-6 pt-24 pb-16">
+          <p className="mb-3 text-sm tracking-widest text-accent uppercase">Portfolio</p>
+          <h1 className="mb-5 text-4xl font-bold text-ink sm:text-5xl">S.Fukui</h1>
+          <p className="mb-8 max-w-[560px] text-muted">
             基幹システム開発を中心に、SE補助からプロジェクトリーダーまで幅広く経験。
             <br />
             直近ではAI駆動開発の導入にも取り組んでいます。
           </p>
-          <Link href="/person/works/" className="button">
+          <Link
+            href="/person/works/"
+            className="inline-block rounded-full bg-accent px-7 py-3 font-bold text-bg no-underline transition-opacity hover:opacity-85"
+          >
             Works を見る
           </Link>
         </section>
 
-        <section className="section container">
-          <h2 className="section-title">About</h2>
-          <p className="section-text">
+        <section className="mx-auto max-w-[960px] border-t border-line px-6 py-12">
+          <h2 className="mb-4 text-2xl font-semibold text-ink">About</h2>
+          <p className="max-w-[640px] text-muted">
             2023年にエンジニアとしてキャリアを開始し、約3年間、基幹システム刷新プロジェクトを中心に要件定義から設計・開発・テスト・保守まで一貫して経験。
             <br />
             直近ではプロジェクトリーダーとしてWebフロントエンド開発を主導する傍ら、AI駆動開発の導入やソースコード管理のSVNからGitHubへの移行推進など、開発プロセス改善にも取り組んでいます。

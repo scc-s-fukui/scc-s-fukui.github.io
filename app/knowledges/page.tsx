@@ -28,29 +28,36 @@ const ARTICLES: Article[] = [
 
 export default function KnowledgesIndexPage() {
   return (
-    <div className="page-transition">
+    <div className="animate-fade-in opacity-0">
       <Header logoLabel="Knowledges" navItems={NAV_ITEMS} />
 
       <main>
-        <section className="page-head container">
-          <p className="hero-eyebrow">Knowledges</p>
-          <h1 className="section-title">技術共有</h1>
-          <p className="section-text">学んだ技術やナレッジを記事としてまとめています。</p>
+        <section className="mx-auto max-w-[960px] px-6 pt-18 pb-8">
+          <p className="mb-3 text-sm tracking-widest text-accent uppercase">Knowledges</p>
+          <h1 className="mb-4 text-2xl font-semibold text-ink">技術共有</h1>
+          <p className="max-w-[640px] text-muted">学んだ技術やナレッジを記事としてまとめています。</p>
         </section>
 
-        <section className="section container">
-          <div className="work-grid">
+        <section className="mx-auto max-w-[960px] border-t border-line px-6 py-12">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
             {ARTICLES.map((article) => (
-              <Link className="work-card" href={article.href} key={article.href}>
-                <div className="work-tags">
+              <Link
+                className="block overflow-hidden rounded-xl border border-line bg-surface no-underline transition-all hover:-translate-y-1 hover:border-accent"
+                href={article.href}
+                key={article.href}
+              >
+                <div className="flex flex-wrap gap-2 px-4 pt-5">
                   {article.tags.map((tag) => (
-                    <span className="tag" key={tag}>
+                    <span
+                      className="rounded-full border border-accent/35 bg-accent/12 px-3 py-1 text-xs text-accent"
+                      key={tag}
+                    >
                       {tag}
                     </span>
                   ))}
                 </div>
-                <h3 className="work-title">{article.title}</h3>
-                <p className="work-desc">{article.desc}</p>
+                <h3 className="mx-4 mt-4 mb-2 text-base font-medium text-ink">{article.title}</h3>
+                <p className="mx-4 mb-4 text-sm text-muted">{article.desc}</p>
               </Link>
             ))}
           </div>
