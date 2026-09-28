@@ -9,7 +9,7 @@ export default function PortalPage() {
       <Header logoLabel="S.Fukui" />
 
       <main>
-        <section className="mx-auto max-w-content px-6 pt-24 pb-16">
+        <section className="mx-auto max-w-content px-6 pt-24">
           <p className="mb-3 text-sm tracking-widest text-accent uppercase">
             Portal
           </p>
@@ -55,6 +55,10 @@ export default function PortalPage() {
       </main>
 
       <Footer />
+      <div className="mx-auto max-w-content px-6 pb-3 text-sm text-muted">
+        <p>このサイトはClaude Codeを使用して作成しました。</p>
+      </div>
+
     </div>
   );
 }
