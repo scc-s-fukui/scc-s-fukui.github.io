@@ -9,10 +9,10 @@ export default function PortalPage() {
       <Header logoLabel="S.Fukui" />
 
       <main>
-        <section className="mx-auto max-w-[960px] px-6 pt-24 pb-16">
+        <section className="mx-auto max-w-content px-6 pt-24 pb-16">
           <p className="mb-3 text-sm tracking-widest text-accent uppercase">Portal</p>
           <h1 className="mb-5 text-4xl font-bold text-ink sm:text-5xl">S.Fukui</h1>
-          <p className="mb-8 max-w-[560px] text-muted">
+          <p className="mb-8 max-w-lead text-muted">
             実績紹介・技術共有・技術検証をフォルダ単位で公開しています。
             <br />
             それぞれ下記から移動してください。
@@ -20,7 +20,7 @@ export default function PortalPage() {
           <LakesideScene />
         </section>
 
-        <section className="mx-auto max-w-[960px] border-t border-line px-6 py-12">
+        <section className="mx-auto max-w-content border-t border-line px-6 py-12">
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
             <Link
               className="block rounded-xl border border-line bg-surface p-7 no-underline transition-all hover:-translate-y-1 hover:border-accent"

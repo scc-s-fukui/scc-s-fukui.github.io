@@ -8,6 +8,11 @@
   --color-accent: #6c8cff;
   --color-line: #2a2e38;
 
+  /* ページ本文の横幅（固定pxのデザイントークンをarbitrary値ではなく名前付きで扱う） */
+  --container-content: 60rem; /* 960px */
+  --container-copy: 40rem; /* 640px */
+  --container-lead: 35rem; /* 560px */
+
   --animate-fade-in: fade-in 0.4s ease forwards;
 
   @keyframes fade-in {

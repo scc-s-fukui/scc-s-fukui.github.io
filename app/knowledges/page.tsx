@@ -32,13 +32,13 @@ export default function KnowledgesIndexPage() {
       <Header logoLabel="Knowledges" navItems={NAV_ITEMS} />
 
       <main>
-        <section className="mx-auto max-w-[960px] px-6 pt-18 pb-8">
+        <section className="mx-auto max-w-content px-6 pt-18 pb-8">
           <p className="mb-3 text-sm tracking-widest text-accent uppercase">Knowledges</p>
           <h1 className="mb-4 text-2xl font-semibold text-ink">技術共有</h1>
-          <p className="max-w-[640px] text-muted">学んだ技術やナレッジを記事としてまとめています。</p>
+          <p className="max-w-copy text-muted">学んだ技術やナレッジを記事としてまとめています。</p>
         </section>
 
-        <section className="mx-auto max-w-[960px] border-t border-line px-6 py-12">
+        <section className="mx-auto max-w-content border-t border-line px-6 py-12">
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
             {ARTICLES.map((article) => (
               <Link

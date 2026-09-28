@@ -10,10 +10,10 @@ export default function PlaygroundPage() {
       <Header logoLabel="Playground" navItems={NAV_ITEMS} />
 
       <main>
-        <section className="mx-auto max-w-[960px] px-6 pt-18 pb-8">
+        <section className="mx-auto max-w-content px-6 pt-18 pb-8">
           <p className="mb-3 text-sm tracking-widest text-accent uppercase">Playground</p>
           <h1 className="mb-4 text-2xl font-semibold text-ink">技術検証</h1>
-          <p className="max-w-[640px] text-muted">技術検証や実験的な取り組みを置いていく予定です。準備中。</p>
+          <p className="max-w-copy text-muted">技術検証や実験的な取り組みを置いていく予定です。準備中。</p>
           <LakesideDayScene />
           <p className="mt-3 text-sm text-muted">お城をクリック（タップ）すると……？</p>
         </section>

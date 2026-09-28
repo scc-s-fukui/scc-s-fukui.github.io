@@ -8,7 +8,7 @@ type FooterProps = {
 export default function Footer({ backHref, backLabel = "Portal に戻る" }: FooterProps) {
   return (
     <footer className="border-t border-line px-6 py-6 text-sm text-muted">
-      <div className="mx-auto max-w-[960px] px-6">
+      <div className="mx-auto max-w-content px-6">
         <p>&copy; 2026 S.Fukui. All rights reserved.</p>
         {backHref && (
           <p className="mt-2">

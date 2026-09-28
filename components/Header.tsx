@@ -21,7 +21,7 @@ export default function Header({ logoLabel, logoHref = "/", navItems }: HeaderPr
 
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-bg/85 backdrop-blur-md">
-      <div className="relative mx-auto flex h-16 max-w-[960px] items-center justify-between px-6">
+      <div className="relative mx-auto flex h-16 max-w-content items-center justify-between px-6">
         <Link href={logoHref} className="text-lg font-bold text-ink no-underline">
           {logoLabel}
         </Link>
