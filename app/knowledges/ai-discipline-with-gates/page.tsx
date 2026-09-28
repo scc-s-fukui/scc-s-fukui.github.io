@@ -97,13 +97,11 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "22%" }}>名前</th><th>何か</th></tr>
             <tr><td><strong>CLAUDE.md</strong></td>
               <td>AIが<strong>毎回自動で読み込む常時指示書</strong>。リポジトリに置けばそのプロジェクト用、ホーム配下に置けば全プロジェクト共通の指示になる。要は「会話のたびに冒頭で渡される、いつもの指示」。</td></tr>
             <tr><td><strong>Hooks</strong></td>
               <td>AIの動作の前後に<strong>自分のスクリプトを割り込ませる</strong>仕組み。設定ファイルに「このタイミングでこのコマンドを実行する」と書いておくと、AIの意思とは無関係に必ず実行される。<strong>この「無関係に」が本稿の肝です。</strong></td></tr>
-            </tbody>
           </tbody></table>
           </div>
         </section>
@@ -131,12 +129,10 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "45%" }}>指示の性質</th><th>結果</th></tr>
             <tr><td>確率的にしか効かない</td><td>守られる回でも、守られない回がある</td></tr>
             <tr><td>文脈が長くなるほど薄まる</td><td>長い作業ほど守られなくなる（＝守ってほしい場面ほど効かない）</td></tr>
             <tr><td>破ったことを誰も検知しない</td><td>破られたまま完了する</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -151,12 +147,10 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "22%" }}>対象</th><th style={{ width: "34%" }}>「お願い」だけの世界</th><th>実際にやっていること</th></tr>
             <tr><td>コードレビュー</td><td>「気をつけて書いてね」</td><td>PRを立てて、承認されるまでマージできない</td></tr>
             <tr><td>コーディング規約</td><td>「規約に従ってね」</td><td>Lint がCIで落とす</td></tr>
             <tr><td>テスト</td><td>「テストしてね」</td><td>CIが失敗したらデプロイできない</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -188,12 +182,10 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "26%" }}>タイミング</th><th style={{ width: "26%" }}>できること</th><th>主な用途</th></tr>
             <tr><td>ファイル編集の<strong>前</strong></td><td>編集を止める</td><td>触ってはいけないファイルの保護</td></tr>
             <tr><td>ファイル編集の<strong>後</strong></td><td>ブロック／通知</td><td>規約違反の検知、必要作業の想起</td></tr>
             <tr><td><strong>完了報告の直前</strong></td><td>ブロック／通知</td><td>「やり残し」の検出</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -251,12 +243,10 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "22%" }}></th><th style={{ width: "39%" }}>CLAUDE.md</th><th>hook</th></tr>
             <tr><td><strong>働くタイミング</strong></td><td>行動の<strong>前</strong>（事前指示）</td><td>行動の<strong>後</strong>（事後検証）</td></tr>
             <tr><td><strong>効き方</strong></td><td>確率的（ふだんは効くが、長い作業ほど薄まる）</td><td>決定論的（AIの状態と無関係に必ず走る）</td></tr>
             <tr><td><strong>守備範囲</strong></td><td>機械判定できないことも書ける</td><td>機械判定できることだけ</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -280,14 +270,12 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "38%" }}>何を</th><th style={{ width: "26%" }}>CLAUDE.md</th><th>hook のメッセージ</th></tr>
             <tr><td><strong>ルールの定義</strong>（何を守るか）</td><td>◯ <strong>正典はここだけ</strong></td><td>✕ 書かない</td></tr>
             <tr><td>ルール番号</td><td>◯ 固定ID（4章）</td><td>◯ <strong>参照するだけ</strong></td></tr>
             <tr><td>検知条件（いつ鳴るか）</td><td>✕</td><td>◯</td></tr>
             <tr><td>その場の具体手順（どう直すか）</td><td>✕</td><td>◯</td></tr>
             <tr><td>逃げ道の条件</td><td>△</td><td>◯</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -313,12 +301,10 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "17%" }}>破られたら気づくか</th><th style={{ width: "16%" }}>機械で判定できるか</th><th style={{ width: "25%" }}>扱い</th><th>例</th></tr>
             <tr><td><strong>気づく</strong></td><td>—</td><td><strong>規範だけでよい</strong></td><td>日本語で書く／完了報告に未対応事項を含める ── 読めば分かる</td></tr>
             <tr><td><strong>気づかない</strong></td><td>できる</td><td><strong>hook を書く</strong></td><td>テストを実行したか ── 報告の文面は、実行した回としない回で変わらない</td></tr>
             <tr><td><strong>気づかない</strong></td><td>できない</td><td><strong>ルールとして機能しない</strong></td><td>「設計を妥当に保つ」── 願望であって、ルールではない（5章）</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -350,13 +336,11 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "18%" }}></th><th style={{ width: "41%" }}>共通ルール（ホーム配下）</th><th>プロジェクトルール（リポジトリ配下）</th></tr>
             <tr><td><strong>書くこと</strong></td><td>どの案件でも成り立つ<strong>仕事の進め方</strong></td><td>その案件・技術スタック<strong>固有の事情</strong></td></tr>
             <tr><td><strong>例</strong></td><td>完了報告に変更ファイル一覧・テスト結果・未対応事項を含める</td><td>stage以降のブランチはPR必須／入力エラーは項目横ではなくメッセージエリアに表示する</td></tr>
             <tr><td><strong>個数</strong></td><td><strong>20個が上限</strong></td><td>上限なし（1ルール1行は同じ）</td></tr>
             <tr><td><strong>判定</strong></td><td colSpan={2}>「<strong>他のプロジェクトでも同じことを指摘するか？</strong>」── Yesなら共通、Noならプロジェクト</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -376,12 +360,10 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "20%" }}>ゲート</th><th style={{ width: "20%" }}>タイミング</th><th>ルールの例</th></tr>
             <tr><td><strong>開始ゲート</strong></td><td>着手する前</td><td>大きい作業なら作業記録を作る／方向が2通りあるなら1文で確認する／過去の調査結果があれば再調査せず使う</td></tr>
             <tr><td><strong>実装ゲート</strong></td><td>手を動かす間</td><td>作業対象のリポジトリ・ブランチを1コマンドで確認してから触る／依頼範囲外のファイルを変更しない</td></tr>
             <tr><td><strong>完了ゲート</strong></td><td>報告する前</td><td>変更ファイル一覧・テスト結果・未対応事項を必ず含める</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -430,6 +412,9 @@ export default function Page() {
               何をしたら守ったことになるのかが書けていないので、破られても気づけず、機械でも判定できません（3章）。</li>
             <li><strong>全体が20行に収まる。</strong>一画面で読み切れることが、そのまま遵守率に効きます。
               読み返すのに気合が要る規範は、人もAIも読み返しません。</li>
+            <li><strong>AIの世代交代で陳腐化しにくい。</strong>長く細かいルールほど、その時点のモデルの癖への対処（手順の細かな指定や言い回しの工夫）が混ざります。
+              モデルが変わるとそれが不要になったり、かえって逆効果になったりします。実際、Opus 5 → 5.5 の移行でもそうでした。
+              条件と動作だけのルールは、モデルが変わっても意味が変わりません。</li>
           </ul>
 
           <div className={`${styles.callout} ${styles.good}`}>
@@ -456,13 +441,11 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "14%" }}></th><th style={{ width: "43%" }}>作業記録</th><th>判断記録</th></tr>
             <tr><td><strong>目的</strong></td><td>中断しても再開できる</td><td>なぜそう決めたかを残す</td></tr>
             <tr><td><strong>寿命</strong></td><td>作業が終われば役目を終える（使い捨て）</td><td>消さない</td></tr>
             <tr><td><strong>分量</strong></td><td>制限なし。「対象外（今回触らないもの）」を先に書いておくと、依頼範囲外を触る事故が減る</td>
               <td><strong>3行</strong>（背景／決定／理由）。長いと書かれない</td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -502,12 +485,10 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "5%" }}></th><th style={{ width: "22%" }}>層</th><th style={{ width: "24%" }}>判定 → 対処</th><th>見分け方</th></tr>
             <tr><td><strong>①</strong></td><td><strong>コードで白黒つける</strong></td><td>機械が判定 → AIが直す</td><td>ファイルを読めば白黒つくか<br /><span style={{ color: "var(--sub)", fontSize: "13px" }}>文字コード、記述規約、禁止パターン</span></td></tr>
             <tr><td><strong>②</strong></td><td><strong>プロンプトで再判断させる</strong></td><td>機械が検知 → <strong>AIが判断</strong>して直す</td><td>「あるはずのものが無い」を状態の突合で検知できるか<br /><span style={{ color: "var(--sub)", fontSize: "13px" }}>README同期、作業記録の有無</span></td></tr>
             <tr><td><strong>③</strong></td><td><strong>人間に投げる</strong></td><td>機械が検知 → <strong>人間が判断</strong></td><td>誤ったときの損害が大きく、人間の判断を残したいか<br /><span style={{ color: "var(--sub)", fontSize: "13px" }}>保護対象ファイルの変更</span></td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -549,7 +530,6 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "26%" }}>型</th><th style={{ width: "37%" }}>踏んだ失敗</th><th>対処</th></tr>
             <tr><td><strong>1. 常に「今回の変更分」だけを見る</strong></td>
               <td>ファイル全体を走査したら、<strong>既存のコメントを毎回叩き</strong>、さらに<strong>「違反を削除する編集」まで差し戻した</strong>。作業ツリーの未コミット差分で判定したら、<strong>別作業の差分で毎回鳴った</strong></td>
@@ -563,7 +543,6 @@ export default function Page() {
             <tr><td><strong>4. 既知の衝突を先回りで潰す</strong></td>
               <td><code>ADR-\d+</code> がOracleの住所カラム <code>ADR1</code> に当たる／<code>#\d{"{3,}"}</code> がCSSの色コード <code>#000</code> と衝突する／<code>\b</code> が<strong>日本語で機能しない</strong>（Pythonの <code>\w</code> は日本語も単語文字として扱う）</td>
               <td>区切り文字を必須にする、パターンごと採用しない、ASCII英数字だけを除外する先読みに置き換える。<strong>誤検知が出たら狭める、を数回繰り返す</strong></td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -679,7 +658,6 @@ export default function Page() {
 
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "24%" }}>指摘の種類</th><th style={{ width: "40%" }}>運用開始前によくあったもの</th><th>現在</th></tr>
             <tr><td><strong>文字コード</strong></td><td>「文字化けしてるので、確認して直して」</td><td rowSpan={4} style={{ color: "var(--good)", fontWeight: 600, verticalAlign: "middle" }}>ほぼ消滅<br /><span style={{ fontWeight: 400, color: "var(--sub)", fontSize: "13px" }}>（いずれも hook を書いた項目）</span></td></tr>
             <tr><td><strong>動作確認</strong></td><td>「エラーが出てるので確認して修正して」</td></tr>
@@ -687,7 +665,6 @@ export default function Page() {
             <tr><td><strong>対象範囲</strong></td><td>「その2項目は残してください（消さないで）」</td></tr>
             <tr><td><strong>残っているもの</strong></td><td colSpan={2}>「この条件を追加して、本来の仕様に合わせて」「データフロー図に、この経路が載っていない」
               ── <strong>仕様の解釈と設計判断</strong></td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
@@ -740,13 +717,11 @@ export default function Page() {
           <h3>継続コスト（正直なところ）</h3>
           <div className={styles["table-wrap"]}>
           <table className={styles.bordered}><tbody>
-            <tbody>
             <tr><th style={{ width: "40%" }}>項目</th><th>実感</th></tr>
             <tr><td>hook 1本の作成</td><td>30分〜1時間</td></tr>
             <tr><td>誤検知の調整</td><td>導入後2週間ほど、たまに発生</td></tr>
             <tr><td>ルールの見直し</td><td>月1回、10分程度</td></tr>
             <tr><td><strong>放置したときの劣化</strong></td><td style={{ color: "var(--bad)" }}><strong>半年で「動かない設定」になる</strong></td></tr>
-            </tbody>
           </tbody></table>
           </div>
 
