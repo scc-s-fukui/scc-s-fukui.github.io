@@ -1,23 +1,24 @@
 ﻿// 展示物（ドット絵）の定義。1文字=1ドット、"." は透明。PixelIcon に palette と一緒に渡す
 
+// 黒子（歌舞伎の黒衣）。全身を黒で塗り、暗い背景でも輪郭が見えるよう縁だけ少し明るい灰色にする
 export const HERO = {
   rows: [
-    "....KKKK....",
-    "...KHHHHK...",
-    "..KHHHHHHK..",
-    "..KHSSSSHK..",
-    "..KSKSSKSK..",
-    "..KSSSSSSK..",
-    "...KSSSSK...",
-    "..KBBBBBBK..",
-    ".KBBYYYYBBK.",
-    ".KSKBBBBKSK.",
-    "..KKBBBBKK..",
-    "...KBBBBK...",
-    "...KLKKLK...",
-    "...KKK.KKK..",
+    "....GGGG....",
+    "...GKKKKG...",
+    "..GKKKKKKG..",
+    "..GKKKKKKG..",
+    "..GKKKKKKG..",
+    "..GKKKKKKG..",
+    "...GKKKKG...",
+    "..GGKKKKGG..",
+    ".GKKKGGKKKG.",
+    ".GKGKKKKGKG.",
+    "..GGKKKKGG..",
+    "...GKKKKG...",
+    "...GKGGKG...",
+    "...GGG.GGG..",
   ],
-  palette: { K: "#1b1233", H: "#7a4a1f", S: "#f4c79a", B: "#3a6df0", Y: "#ffd23f", L: "#6b4a2b" },
+  palette: { K: "#08080d", G: "#3a3a52" },
 };
 
 export const BOOK = {
