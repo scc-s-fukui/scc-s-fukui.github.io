@@ -20,18 +20,24 @@ const NOTE_INDEX = 7;
 
 export default function PersonWorksPage() {
   return (
-    <div className="animate-fade-in opacity-0">
-      <Header logoLabel="S.Fukui" navItems={NAV_ITEMS} />
+    <div className="theme-backroom animate-fade-in opacity-0">
+      <Header logoLabel="S.Fukui" navItems={NAV_ITEMS} variant="backroom" />
 
       <main>
-        <section className="mx-auto max-w-content px-6 pt-18 pb-8">
-          <p className="mb-3 text-sm tracking-widest text-accent uppercase">Works</p>
-          <h1 className="mb-4 text-2xl font-semibold text-ink">技術スタック別 実績</h1>
-          <p className="max-w-copy text-muted">これまでの案件で携わった技術と、その中での取り組みを技術スタック別にまとめています。</p>
+        <section className="mx-auto max-w-content px-6 pt-16 pb-4">
+          <p className="neon-eyebrow">BACKSTAGE ／ WORKS</p>
+          <div className="neon-sign">
+            <h1 className="neon-title">技術スタック別 実績</h1>
+          </div>
+          <p className="backroom-lead">これまでの案件で携わった技術と、その中での取り組みを技術スタック別にまとめています。</p>
+          <div className="caution-tape" aria-hidden="true">
+            <span>STAFF ONLY ▲ 関係者以外立入禁止</span>
+          </div>
         </section>
 
         <section className="mx-auto max-w-content px-6 pt-4 pb-12">
           <div className="crt-room">
+            <div className="pipe" aria-hidden="true" />
             <svg className="crt-cables" viewBox="0 0 640 80" preserveAspectRatio="none" aria-hidden="true">
               <path d="M120 0 C130 50 60 40 30 80" fill="none" stroke="#050607" strokeWidth="3" />
               <path d="M300 0 C310 60 400 30 430 80" fill="none" stroke="#050607" strokeWidth="3" />
@@ -85,7 +91,7 @@ export default function PersonWorksPage() {
         </section>
       </main>
 
-      <Footer backHref="/" />
+      <Footer backHref="/" variant="backroom" />
     </div>
   );
 }

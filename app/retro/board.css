@@ -1,0 +1,304 @@
+﻿/* 掲示板テーマ（Knowledges）：BBSではなく、コルクボードに画鋲で貼り出した紙。ちょっとレトロな連絡掲示板 */
+@layer components {
+  .theme-board {
+    --ink-brown: #2d2216;
+    min-height: 100vh;
+    font-family: var(--font-dot);
+    color: #e9dcc4;
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 0%, rgb(255 214 150 / 0.14), transparent 70%),
+      repeating-linear-gradient(90deg, rgb(0 0 0 / 0.14) 0 2px, transparent 2px 38px),
+      linear-gradient(#3b2a1a, #2a1d12);
+  }
+
+  /* ---- ヘッダー：木の板に貼った名札 ---- */
+  .hdr-board {
+    background: linear-gradient(#7d5430, #5a3a1f);
+    border-bottom: 3px solid #2f1d0e;
+    box-shadow:
+      inset 0 1px 0 rgb(255 220 170 / 0.35),
+      0 6px 14px rgb(0 0 0 / 0.5);
+  }
+
+  .hdr-board .hdr-logo {
+    padding: 0.3rem 0.8rem;
+    background: #fbf3dc;
+    color: var(--ink-brown);
+    font-size: 1rem;
+    transform: rotate(-1.2deg);
+    box-shadow: 0 2px 3px rgb(0 0 0 / 0.5);
+  }
+
+  .hdr-board .hdr-burger {
+    color: #fbf3dc;
+  }
+
+  .hdr-board .hdr-panel {
+    background: #5a3a1f;
+    border-bottom: 3px solid #2f1d0e;
+  }
+
+  .hdr-board .hdr-link {
+    color: #e9d3ac;
+    border-bottom: 1px solid rgb(0 0 0 / 0.25);
+  }
+
+  .hdr-board .hdr-link:hover,
+  .hdr-board .hdr-link.is-active {
+    color: #fff;
+  }
+
+  @media (min-width: 48rem) {
+    .hdr-board .hdr-link {
+      border-bottom: 2px solid transparent;
+    }
+
+    .hdr-board .hdr-link.is-active {
+      border-bottom-color: #fbf3dc;
+    }
+  }
+
+  /* ---- 木枠のコルクボード ---- */
+  .board-frame {
+    padding: 0.9rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #a0713d, #6d4723 50%, #8d6030);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 220 170 / 0.4),
+      0 18px 36px rgb(0 0 0 / 0.6);
+  }
+
+  .cork {
+    position: relative;
+    padding: 2.5rem 1.75rem 2.25rem;
+    border-radius: 0.25rem;
+    background:
+      radial-gradient(circle at 20% 30%, rgb(110 70 30 / 0.55) 0 1.2px, transparent 1.8px),
+      radial-gradient(circle at 70% 60%, rgb(255 225 170 / 0.5) 0 1.2px, transparent 1.8px),
+      radial-gradient(circle at 40% 80%, rgb(90 55 20 / 0.5) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 85% 15%, rgb(230 190 130 / 0.5) 0 1.5px, transparent 2px),
+      #c08d55;
+    background-size:
+      9px 11px,
+      13px 9px,
+      17px 15px,
+      23px 19px,
+      auto;
+    box-shadow: inset 0 0 28px rgb(60 30 5 / 0.55);
+    color: var(--ink-brown);
+  }
+
+  /* ---- 画鋲 ---- */
+  .pin {
+    position: absolute;
+    top: -0.55rem;
+    left: 50%;
+    z-index: 2;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-left: -0.55rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffb3a8 0 12%, #d6291a 40%, #7d130b);
+    box-shadow:
+      2px 4px 3px rgb(0 0 0 / 0.45),
+      inset -1px -1px 2px rgb(0 0 0 / 0.35);
+  }
+
+  /* ---- 見出しの貼り紙 ---- */
+  .poster {
+    position: relative;
+    margin: 0 auto 2.5rem;
+    max-width: 30rem;
+    padding: 1.4rem 1.5rem 1.2rem;
+    background: #fbf3dc;
+    text-align: center;
+    transform: rotate(-0.8deg);
+    box-shadow: 0 6px 10px rgb(0 0 0 / 0.4);
+  }
+
+  .poster-frame {
+    padding: 0.9rem 1rem;
+    border: 3px double #7a1d1d;
+  }
+
+  .poster-eyebrow {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-pixel);
+    font-size: 0.5625rem;
+    letter-spacing: 0.25em;
+    color: #8a6a3a;
+  }
+
+  .poster-title {
+    margin: 0;
+    font-size: 1.9rem;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    color: #7a1d1d;
+  }
+
+  .poster-sub {
+    margin: 0.6rem 0 0;
+    font-size: 0.875rem;
+    color: #4a3a26;
+  }
+
+  /* マスキングテープ */
+  .tape {
+    position: absolute;
+    top: -0.6rem;
+    width: 4.2rem;
+    height: 1.4rem;
+    background: rgb(255 236 150 / 0.75);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  }
+
+  .tape-l {
+    left: -1.2rem;
+    transform: rotate(-35deg);
+  }
+
+  .tape-r {
+    right: -1.2rem;
+    transform: rotate(35deg);
+  }
+
+  /* ---- 貼り紙（記事カード） ---- */
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 2.4rem 2rem;
+    align-items: start;
+  }
+
+  .note {
+    position: relative;
+    display: block;
+    padding: 1.6rem 1.25rem 1rem 1.6rem;
+    color: var(--ink-brown);
+    text-decoration: none;
+    background:
+      linear-gradient(90deg, transparent 1.15rem, rgb(220 80 80 / 0.55) 1.15rem 1.2rem, transparent 1.2rem),
+      repeating-linear-gradient(transparent 0 25px, rgb(90 140 220 / 0.28) 25px 26px),
+      var(--paper, #fdf7e3);
+    transform: rotate(var(--note-tilt, 0deg));
+    box-shadow: 0 6px 8px rgb(0 0 0 / 0.38);
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .note[data-paper="yellow"] {
+    --paper: #fff3b0;
+  }
+
+  .note[data-paper="pink"] {
+    --paper: #ffe0e4;
+  }
+
+  .note[data-paper="blue"] {
+    --paper: #def0ff;
+  }
+
+  .note:hover,
+  .note:focus-visible {
+    z-index: 5;
+    transform: translateY(-5px) rotate(0deg) scale(1.02);
+    box-shadow: 0 14px 18px rgb(0 0 0 / 0.42);
+  }
+
+  .note-meta {
+    margin: 0 0 0.6rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px dotted rgb(45 34 22 / 0.5);
+    font-size: 0.75rem;
+    color: #6a5a44;
+  }
+
+  .note-tags {
+    margin: 0 0 0.4rem;
+    font-size: 0.8125rem;
+    color: #a0261c;
+  }
+
+  .note-title {
+    margin: 0 0 0.6rem;
+    display: inline;
+    font-size: 1.1875rem;
+    font-weight: 400;
+    line-height: 1.7;
+    background: linear-gradient(transparent 62%, rgb(255 214 60 / 0.65) 62%);
+  }
+
+  .note-desc {
+    margin: 0.6rem 0 0.9rem;
+    font-size: 0.875rem;
+    line-height: 26px;
+  }
+
+  .note-more {
+    display: block;
+    text-align: right;
+    font-size: 0.8125rem;
+    color: #a0261c;
+    text-decoration: underline;
+  }
+
+  /* ---- 付箋・注意書き ---- */
+  .sticky-note {
+    position: relative;
+    width: 11.5rem;
+    margin: 0 auto;
+    padding: 1.1rem 0.9rem 0.9rem;
+    background: #ffee7a;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: #4a3d05;
+    transform: rotate(3deg);
+    box-shadow: 0 5px 7px rgb(0 0 0 / 0.35);
+  }
+
+  .board-footnote {
+    margin: 2rem 0 0 auto;
+    max-width: 21rem;
+    padding: 0.5rem 0.9rem;
+    background: #fbf3dc;
+    font-size: 0.75rem;
+    color: #5a4a34;
+    transform: rotate(-0.6deg);
+    box-shadow: 0 3px 5px rgb(0 0 0 / 0.35);
+  }
+
+  /* ---- フッター：巾木と管理人札 ---- */
+  .ftr-board {
+    margin-top: 3rem;
+    border-top: 12px solid #1f1409;
+    background: linear-gradient(#34261a, #231910);
+    box-shadow: inset 0 2px 0 #5a3f22;
+  }
+
+  .ftr-board .ftr-copy {
+    color: #b8a487;
+  }
+
+  .board-back {
+    padding: 0.4rem 0.9rem;
+    background: #fbf3dc;
+    color: var(--ink-brown);
+    text-decoration: none;
+    transform: rotate(-1deg);
+    box-shadow: 0 3px 4px rgb(0 0 0 / 0.5);
+    transition: transform 0.15s;
+  }
+
+  .board-back:hover {
+    transform: rotate(0deg) translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .note,
+    .board-back {
+      transition: none;
+    }
+  }
+}

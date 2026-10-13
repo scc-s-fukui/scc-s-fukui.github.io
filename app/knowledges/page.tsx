@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+﻿import type { CSSProperties } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -26,45 +27,66 @@ const ARTICLES: Article[] = [
   },
 ];
 
+// 貼り紙の紙色と傾き。SSRとクライアントで描画結果がずれないよう乱数ではなく固定テーブルで与える
+const PAPERS = ["white", "yellow", "blue", "pink"] as const;
+const TILTS = [-1.8, 1.4, -0.9, 2.0]; // deg
+
 export default function KnowledgesIndexPage() {
   return (
-    <div className="animate-fade-in opacity-0">
-      <Header logoLabel="Knowledges" navItems={NAV_ITEMS} />
+    <div className="theme-board animate-fade-in opacity-0">
+      <Header logoLabel="Knowledges" navItems={NAV_ITEMS} variant="board" />
 
       <main>
-        <section className="mx-auto max-w-content px-6 pt-18 pb-8">
-          <p className="mb-3 text-sm tracking-widest text-accent uppercase">Knowledges</p>
-          <h1 className="mb-4 text-2xl font-semibold text-ink">技術共有</h1>
-          <p className="max-w-copy text-muted">学んだ技術やナレッジを記事としてまとめています。</p>
-        </section>
-
-        <section className="mx-auto max-w-content border-t border-line px-6 py-12">
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
-            {ARTICLES.map((article) => (
-              <Link
-                className="block overflow-hidden rounded-xl border border-line bg-surface no-underline transition-all hover:-translate-y-1 hover:border-accent"
-                href={article.href}
-                key={article.href}
-              >
-                <div className="flex flex-wrap gap-2 px-4 pt-5">
-                  {article.tags.map((tag) => (
-                    <span
-                      className="rounded-full border border-accent/35 bg-accent/12 px-3 py-1 text-xs text-accent"
-                      key={tag}
-                    >
-                      {tag}
-                    </span>
-                  ))}
+        <section className="mx-auto max-w-content px-6 pt-14 pb-4">
+          <div className="board-frame">
+            <div className="cork">
+              <div className="poster">
+                <span className="tape tape-l" aria-hidden="true" />
+                <span className="tape tape-r" aria-hidden="true" />
+                <div className="poster-frame">
+                  <p className="poster-eyebrow">KNOWLEDGES</p>
+                  <h1 className="poster-title">技術共有</h1>
+                  <p className="poster-sub">学んだ技術やナレッジを記事としてまとめています。</p>
                 </div>
-                <h3 className="mx-4 mt-4 mb-2 text-base font-medium text-ink">{article.title}</h3>
-                <p className="mx-4 mb-4 text-sm text-muted">{article.desc}</p>
-              </Link>
-            ))}
+              </div>
+
+              <div className="notes">
+                {ARTICLES.map((article, i) => (
+                  <Link
+                    className="note"
+                    data-paper={PAPERS[i % PAPERS.length]}
+                    href={article.href}
+                    key={article.href}
+                    style={{ "--note-tilt": `${TILTS[i % TILTS.length]}deg` } as CSSProperties}
+                  >
+                    <span className="pin" aria-hidden="true" />
+                    <p className="note-meta">
+                      No.{String(i + 1).padStart(3, "0")} ／ 投稿者：S.Fukui
+                    </p>
+                    <p className="note-tags">
+                      {article.tags.map((tag) => (
+                        <span key={tag}>【{tag}】</span>
+                      ))}
+                    </p>
+                    <h2 className="note-title">{article.title}</h2>
+                    <p className="note-desc">{article.desc}</p>
+                    <span className="note-more">続きを読む ▶</span>
+                  </Link>
+                ))}
+
+                <div className="sticky-note" aria-hidden="true">
+                  <span className="pin" />
+                  気になる貼り紙をクリックすると、記事ページに移動します。
+                </div>
+              </div>
+
+              <p className="board-footnote">※ 掲示板風の見た目ですが、書き込み機能はありません（見るだけです）。</p>
+            </div>
           </div>
         </section>
       </main>
 
-      <Footer backHref="/" />
+      <Footer backHref="/" variant="board" />
     </div>
   );
 }
