@@ -1,0 +1,17 @@
+﻿version: 2
+updates:
+  # npm依存の脆弱性修正・更新を週次でPR化する
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        update-types: ["minor", "patch"]
+
+  # GitHub Actions のバージョン更新を週次でPR化する
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

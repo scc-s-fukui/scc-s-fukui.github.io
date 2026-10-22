@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+node_modules/
+
+# ページ作成に関するドキュメント・ローカル開発設定（リポジトリにはページ本体とビルド設定のみを入れる）
+progress.md
+docs/
+README.md
+.claude/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo

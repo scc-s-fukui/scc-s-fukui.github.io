@@ -1,0 +1,112 @@
+﻿@import "tailwindcss";
+@import "./retro/museum.css";
+@import "./retro/backroom.css";
+@import "./retro/board.css";
+@import "./retro/arcade.css";
+
+@theme {
+  --color-bg: #0f1115;
+  --color-surface: #171a21;
+  --color-ink: #e8e9ec;
+  --color-muted: #9aa0ac;
+  --color-accent: #6c8cff;
+  --color-line: #2a2e38;
+
+  /* ページ本文の横幅（固定pxのデザイントークンをarbitrary値ではなく名前付きで扱う） */
+  --container-content: 60rem; /* 960px */
+  --container-copy: 40rem; /* 640px */
+  --container-lead: 35rem; /* 560px */
+
+  /* レトロゲーム風ページ用の書体（実体は app/layout.tsx の next/font が定義する） */
+  --font-pixel: var(--font-press-start), "Courier New", monospace;
+  --font-dot: var(--font-dot-gothic), "Yu Gothic UI", "Meiryo", sans-serif;
+
+  --animate-fade-in: fade-in 0.4s ease forwards;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+}
+
+/* レトロRPGのウィンドウ風ピクセルアート演出（ポータル・playground専用） */
+@layer components {
+  .scene-frame {
+    margin-top: 2rem;
+    border: 3px solid #e8e9ec;
+    border-radius: 0.5rem;
+    padding: 3px;
+    background-color: #0a0c28;
+    box-shadow:
+      0 0 0 3px #1a1d4a,
+      0 12px 32px rgb(0 0 0 / 0.45);
+  }
+
+  .scene-frame.is-day {
+    background-color: #2e6ad8;
+  }
+
+  .scene-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 240 / 100;
+    border-radius: 0.25rem;
+    image-rendering: pixelated;
+  }
+}
+
+/* 世界観ページ共通：ヘッダー・フッターの下地（色や質感は各テーマのCSSで与える） */
+@layer components {
+  .hdr {
+    border-bottom: 1px solid transparent;
+  }
+
+  .hdr-logo {
+    text-decoration: none;
+  }
+
+  .hdr-link {
+    border-bottom: 1px solid transparent;
+  }
+
+  .ftr {
+    margin-top: 3rem;
+  }
+
+  .ftr-copy {
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+
+  .blink {
+    animation: blink 1.1s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blink {
+      animation: none;
+    }
+  }
+}
