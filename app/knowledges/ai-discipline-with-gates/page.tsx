@@ -1,744 +1,505 @@
-﻿import Link from "next/link";
-import styles from "./style.module.css";
+﻿import ArticleLayout from "@/components/article/ArticleLayout";
+import {
+  Bars,
+  Card,
+  Dots,
+  Flow,
+  Fold,
+  Grid,
+  Note,
+  Quote,
+  Sheet,
+  Stat,
+  Steps,
+  Table,
+  Takeaway,
+  Tree,
+  Versus,
+} from "@/components/article/parts";
 
 export const metadata = { title: "AIに規律を守らせる仕組み" };
 
+const TOC = [
+  { id: "s0", no: "要点", label: "先に結論" },
+  { id: "s1", no: "1", label: "指示は守られない" },
+  { id: "s2", no: "2", label: "ゲートへ" },
+  { id: "s3", no: "3", label: "規範と検証" },
+  { id: "s4", no: "4", label: "規範の書き方" },
+  { id: "s5", no: "5", label: "検証の作り方" },
+  { id: "s6", no: "6", label: "効果" },
+  { id: "s7", no: "7", label: "導入と落とし穴" },
+];
+
 export default function Page() {
   return (
-    <div className={styles.articleRoot}>
-      <div className={styles.container}>
+    <ArticleLayout
+      no={1}
+      title="AIに規律を守らせる仕組み"
+      lead="指示ではなく、ゲートで担保する ── Claude Code を半年運用して分かったこと"
+      badges={["読了目安 約11分", "対象：AIコーディングを業務で使う人", "前提知識：不要"]}
+      date="2026-09-17 公開 ／ 2026-11-11 改訂"
+      toc={TOC}
+      disclaimer="記載の運用は個人環境での実践に基づく個人の見解であり、特定の基準・標準を示すものではありません。"
+      next={{ href: "/knowledges/ai-subtraction-aesthetics/", title: "AIに引き算の美学を持たせる" }}
+    >
+      {/* ===================== 要点 ===================== */}
+      <Sheet id="s0" no="要点" title="先に結論（4つ）">
+        <p>伝えたいのは設定ファイルではなく考え方です。腑に落ちれば、細部は読み飛ばして構いません。</p>
 
-        <header className={styles.hero}>
-          <h1>AIに規律を守らせる仕組み</h1>
-          <div className={styles.lead}>指示ではなく、ゲートで担保する ── Claude Code を半年運用して分かったこと</div>
-          <div className={styles.badges}>
-            <span className={styles.badge}>読了目安 20分</span>
-            <span className={styles.badge}>対象：AIコーディングを業務で使う人</span>
-            <span className={styles.badge}>前提知識：不要</span>
-          </div>
-          <div className={styles.meta}>2026-09-17</div>
-        </header>
+        <Grid min="12.5rem">
+          <Takeaway n="1" title="お願いは、長い作業ほど効かなくなる" href="#s1">
+            守ってほしい場面ほど守られない。規律の担保先を、AIの内側から外側へ移す。
+          </Takeaway>
+          <Takeaway n="2" title="人間の開発でやっていることを、AIにもやるだけ" href="#s2">
+            PR・Lint・CI と同じ。新しい概念は無く、指示とゲートは両方要る。
+          </Takeaway>
+          <Takeaway n="3" title="hook が要るのは、破られても気づかないルールだけ" href="#s3">
+            読めば分かるものは規範だけでいい。書いた検証が黙って壊れていないかも疑う。
+          </Takeaway>
+          <Takeaway n="4" title="ルールは思いつきでなく、記録から発掘する" href="#s4">
+            作業記録に現れる反復が、無意識に守っていた規律を教えてくれる。
+          </Takeaway>
+        </Grid>
 
-        <nav className={styles.toc}>
-          <b>目次</b>
-          <a href="#s00">要点</a>
-          <a href="#s0">はじめに</a>
-          <a href="#s1">1. 指示は守られない</a>
-          <a href="#s2">2. お願いからゲートへ</a>
-          <a href="#s3">3. 規範と検証の関係</a>
-          <a href="#s4">4. 規範をどう書くか</a>
-          <a href="#s5">5. 検証をどう作るか</a>
-          <a href="#s6">6. 効果は測れているのか</a>
-          <a href="#s7">7. 導入コストと落とし穴</a>
-        </nav>
+        <h3>前提：Claude Code の2つの仕組み</h3>
+        <Grid min="16rem">
+          <Card tag="指示書" title="CLAUDE.md">
+            <p>AIが毎回自動で読む常時指示書。置き場所で、そのプロジェクト用にも全プロジェクト共通にもなる。</p>
+          </Card>
+          <Card tag="検問所" title="Hooks" tone="key">
+            <p>AIの動作の前後に自分のスクリプトを割り込ませる仕組み。AIの意思と無関係に必ず実行される。この「無関係に」が本稿の肝。</p>
+          </Card>
+        </Grid>
 
-        {/* ===================== 要点 ===================== */}
-        <section id="s00">
-          <h2><span className={styles.num}>要点</span>先に結論</h2>
+        <h3>まずは、ここから1本だけ（30〜60分）</h3>
+        <Flow
+          steps={[
+            { title: "同じ指摘を1つ思い出す", sub: "今週AIに2回以上言ったこと。例：「テストしてから報告して」" },
+            { title: "CLAUDE.md に1行で書く", sub: "条件と動作だけ。「注意する」で終わる文はまだルールではない" },
+            { title: "検証する hook を1本、通知で", sub: "書いた直後に、わざと違反して鳴ることを確かめる", tone: "key" },
+          ]}
+        />
+        <Note tone="warn" title="いきなり全部入れない">
+          <p>ルール20個＋hook 10本を一度に入れると、誤検知の洪水で3日で外すことになります。1ルール1hook ずつ。</p>
+        </Note>
+      </Sheet>
 
-          <p>この文章の主張は4つです。以下が腑に落ちれば、細部は読み飛ばして構いません。</p>
+      {/* ===================== 1 ===================== */}
+      <Sheet id="s1" no="01" title="指示は守られない">
+        <p>CLAUDE.md に「修正が終わったらビルドとテストを実行してから完了報告すること」と書いても、こうなります。</p>
+        <Flow
+          steps={[
+            { title: "最初の数回は守られる", tone: "good" },
+            { title: "会話が長くなる", sub: "修正が10ファイルに増える／別の話題が挟まる" },
+            { title: "「完了しました」", sub: "テスト未実行。文面は実行した時と変わらない", tone: "bad" },
+          ]}
+        />
 
-          <div className={styles.takeaways}>
-            <div className={styles.takeaway}>
-              <span className={styles.tnum}>1</span>
-              <div className={styles.tmain}>AIへの「お願い」は、長い作業ほど効かなくなる</div>
-              <div className={styles.tsub}>守ってほしい場面ほど守られない、という構造的な問題がある。規律の担保先を、AIの内側から外側に移す必要がある。<br /><a href="#s1" style={{ color: "var(--accent)", textDecoration: "none" }}>→ 1章</a></div>
-            </div>
-            <div className={styles.takeaway}>
-              <span className={styles.tnum}>2</span>
-              <div className={styles.tmain}>人間の開発プロセスで既にやっていることを、AIに対してもやるだけ</div>
-              <div className={styles.tsub}>PR・Lint・CI と同じ。新しい概念は何もない。規約とLintの両方が要るように、指示とゲートも両方要る。<br /><a href="#s2" style={{ color: "var(--accent)", textDecoration: "none" }}>→ 2章</a>　<a href="#s3" style={{ color: "var(--accent)", textDecoration: "none" }}>→ 3章</a></div>
-            </div>
-            <div className={styles.takeaway}>
-              <span className={styles.tnum}>3</span>
-              <div className={styles.tmain}>hook が要るのは、破られても気づかないルールだけ</div>
-              <div className={styles.tsub}>全部のルールに検証は要らない。読めば破られたと分かるものは、規範だけでいい。そして、書いた検証自体が黙って壊れていないかも疑うこと。<br /><a href="#s3" style={{ color: "var(--accent)", textDecoration: "none" }}>→ 3章</a>　<a href="#s5" style={{ color: "var(--accent)", textDecoration: "none" }}>→ 5章</a></div>
-            </div>
-            <div className={styles.takeaway}>
-              <span className={styles.tnum}>4</span>
-              <div className={styles.tmain}>ルールは思いつきではなく、記録から発掘する</div>
-              <div className={styles.tsub}>規範は最初から全部書けない。作業の記録に現れる反復が、無意識に守っていた規律を教えてくれる。<br /><a href="#s4" style={{ color: "var(--accent)", textDecoration: "none" }}>→ 4章</a></div>
-            </div>
-          </div>
+        <h3>これはAIの性能ではなく、指示という手段の性質</h3>
+        <Grid min="13rem">
+          <Card title="確率的にしか効かない">
+            <p>守られる回でも、守られない回がある。</p>
+          </Card>
+          <Card title="文脈が長いほど薄まる">
+            <p>守ってほしい長い作業ほど効かない。</p>
+          </Card>
+          <Card tone="bad" stamp="本質" title="破られても誰も気づかない">
+            <p>対策が打たれず、同じことが翌日も起きる。</p>
+          </Card>
+        </Grid>
 
-          <div className={styles.card} style={{ borderLeft: "4px solid var(--good)", marginTop: "18px" }}>
-            <strong style={{ fontSize: "16px" }}>まずは、ここから1本だけ</strong>
-            <ol style={{ margin: "10px 0 0 22px" }}>
-              <li><strong>今週AIに2回以上言った同じ指摘を、1つ思い出す。</strong>
-                <span style={{ color: "var(--sub)", fontSize: "13.5px" }}>例：「テストしてから報告して」</span></li>
-              <li><strong>それを CLAUDE.md に1行で書く。</strong>
-                <span style={{ color: "var(--sub)", fontSize: "13.5px" }}>条件と動作だけ。「注意する」で終わる文になったら、それはまだルールになっていません</span></li>
-              <li><strong>それを検証する hook を1本だけ書く。止めない「通知」で。</strong>
-                <span style={{ color: "var(--sub)", fontSize: "13.5px" }}>書いた直後に、わざと違反して鳴ることを必ず確かめる</span></li>
-            </ol>
-            <p style={{ margin: "12px 0 0", fontSize: "14px" }}>ここまでで30分〜1時間です。
-            <strong>いきなり全部入れないこと。</strong>ルール20個と hook 10本を一度に入れると、誤検知の洪水で3日で外すことになります。
-            <strong>1ルール1hookずつ。</strong><a href="#s7" style={{ color: "var(--accent)", textDecoration: "none" }}>→ 7章</a></p>
-          </div>
-        </section>
+        <h3>人間相手には、とっくに「お願い」を諦めている</h3>
+        <Grid min="13rem">
+          <Card tag="コードレビュー">
+            <p>「気をつけて書いてね」</p>
+            <p>→ <b>PRが承認されるまでマージ不可</b></p>
+          </Card>
+          <Card tag="コーディング規約">
+            <p>「規約に従ってね」</p>
+            <p>→ <b>Lint がCIで落とす</b></p>
+          </Card>
+          <Card tag="テスト">
+            <p>「テストしてね」</p>
+            <p>→ <b>CIが失敗したらデプロイ不可</b></p>
+          </Card>
+        </Grid>
+        <Note>
+          <p>AIに対してだけ、まだお願いを続けている。以降、この検問にあたるものを<b>ゲート</b>と呼びます。</p>
+        </Note>
+      </Sheet>
 
-        {/* ===================== はじめに ===================== */}
-        <section id="s0">
-          <h2><span className={styles.num}>はじめに</span>この文章について</h2>
+      {/* ===================== 2 ===================== */}
+      <Sheet id="s2" no="02" title="お願いからゲートへ">
+        <p>「守らせる」をやめて、「守らなかったことを検知する」に切り替えます。</p>
+        <Versus
+          left={{
+            tag: "これまで",
+            children: (
+              <p>
+                指示を書く<br />▼<br />AIが守る（といいな）
+              </p>
+            ),
+          }}
+          right={{
+            tag: "これから",
+            children: (
+              <p>
+                指示を書く ▶ AIが作業する<br />▼<br />機械が検証する<br />▼<br />破っていたら差し戻す
+              </p>
+            ),
+          }}
+        />
 
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>伝えたいのは、設定ファイルではなく考え方です。</span>
-            AIコーディングの話題は「どう指示するか（プロンプト）」に集中しがちですが、実務で効いてくるのは
-            <strong>「指示が守られなかったときに、どう気づくか」</strong>のほうです。この文章は、後者を機械的に担保する構造の記録です。
-          </div>
-
-          <p>Claude Code を業務で半年ほど運用するなかで組み上げた仕組みを、実例と失敗込みで書いています。
-          ただし<strong>そのままコピーして使うことは薦めません。</strong>ここに出てくるルールは、すべて
-          「自分が繰り返しやられた失敗」から逆算したものです。
-          自分の仕事に合わせて作り直すための素材として読んでください。</p>
-
-          <h3>前提：Claude Code の2つの仕組み</h3>
-          <p>本文に出てくる固有名詞は2つだけです。先に押さえておけば、あとは一般論として読めます。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "22%" }}>名前</th><th>何か</th></tr>
-            <tr><td><strong>CLAUDE.md</strong></td>
-              <td>AIが<strong>毎回自動で読み込む常時指示書</strong>。リポジトリに置けばそのプロジェクト用、ホーム配下に置けば全プロジェクト共通の指示になる。要は「会話のたびに冒頭で渡される、いつもの指示」。</td></tr>
-            <tr><td><strong>Hooks</strong></td>
-              <td>AIの動作の前後に<strong>自分のスクリプトを割り込ませる</strong>仕組み。設定ファイルに「このタイミングでこのコマンドを実行する」と書いておくと、AIの意思とは無関係に必ず実行される。<strong>この「無関係に」が本稿の肝です。</strong></td></tr>
-          </tbody></table>
-          </div>
-        </section>
-
-        {/* ===================== 1 ===================== */}
-        <section id="s1">
-          <h2><span className={styles.num}>1</span>指示は守られない</h2>
-
-          <h3>よくある光景</h3>
-          <p>CLAUDE.md にこう書いたとします。</p>
-
-          <div className={styles.quote}>修正が終わったらビルドとテストを実行してから完了報告すること。</div>
-
-          <p>最初の数回は守られます。しかし、</p>
+        <h3>hook を差し込む3つのタイミング</h3>
+        <Flow
+          steps={[
+            { title: "編集の前", sub: "止める。触ってはいけないファイルの保護" },
+            { title: "編集の後", sub: "ブロック／通知。規約違反の検知、必要作業の想起" },
+            { title: "★完了報告の直前", sub: "ブロック／通知。やり残しの検出", tone: "key" },
+          ]}
+        />
+        <Note title="最も効くのは、完了報告の直前">
+          <p>AIが手を抜くのは、常に「終わりにしようとする瞬間」だから。ここにゲートを置くと自動で起きます。</p>
           <ul>
-            <li>会話が長くなる</li>
-            <li>修正が5ファイル、10ファイルと増える</li>
-            <li>途中で別の話題が挟まる</li>
-          </ul>
-          <p>と、<strong>テストを実行せずに「完了しました」と報告してくる</strong>ようになります。
-          しかも悪いことに、報告の文面は実行したときと変わりません。</p>
-
-          <h3>なぜこうなるのか</h3>
-          <p>これはAIの性能の問題ではなく、<strong>指示という手段の性質</strong>の問題です。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "45%" }}>指示の性質</th><th>結果</th></tr>
-            <tr><td>確率的にしか効かない</td><td>守られる回でも、守られない回がある</td></tr>
-            <tr><td>文脈が長くなるほど薄まる</td><td>長い作業ほど守られなくなる（＝守ってほしい場面ほど効かない）</td></tr>
-            <tr><td>破ったことを誰も検知しない</td><td>破られたまま完了する</td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>3つ目が本質です</span>
-            「テストしていないのに完了と言った」ことに、誰も気づいていない。
-            気づいていないので、対策も打たれず、同じことが翌日も起きます。
-          </div>
-
-          <h3>人間の開発プロセスではどうしているか</h3>
-          <p>同じ問題は人間相手にも起きます。そして我々は既に答えを持っています。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "22%" }}>対象</th><th style={{ width: "34%" }}>「お願い」だけの世界</th><th>実際にやっていること</th></tr>
-            <tr><td>コードレビュー</td><td>「気をつけて書いてね」</td><td>PRを立てて、承認されるまでマージできない</td></tr>
-            <tr><td>コーディング規約</td><td>「規約に従ってね」</td><td>Lint がCIで落とす</td></tr>
-            <tr><td>テスト</td><td>「テストしてね」</td><td>CIが失敗したらデプロイできない</td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.key}`}>
-            我々は人間に対しては、とっくに「お願い」を諦めて<strong>検問</strong>に移行しています。<br />
-            AIに対してだけ、まだお願いを続けている ── というのが現状です。<br />
-            <span style={{ fontSize: "13.5px", opacity: .85 }}>※ 以降、この検問にあたるものを<strong>ゲート</strong>と呼びます。</span>
-          </div>
-        </section>
-
-        {/* ===================== 2 ===================== */}
-        <section id="s2">
-          <h2><span className={styles.num}>2</span>お願いからゲートへ</h2>
-
-          <p>やることは単純です。「守らせる」のをやめて、「守らなかったことを検知する」に切り替えます。</p>
-
-          <div className={styles.duo}>
-            <div className={`${styles.flow} ${styles.before}`}>
-              <span className={styles.ftag}>これまで</span>
-              指示を書く<br />　↓<br /><span style={{ color: "#dc2626" }}>AIが守る（といいな）</span>
-            </div>
-            <div className={`${styles.flow} ${styles.after}`}>
-              <span className={styles.ftag}>これから</span>
-              指示を書く<br />　↓<br />AIが作業する<br />　↓<br /><span style={{ color: "#059669" }}>機械が検証する</span><br />　↓<br /><span style={{ color: "#059669" }}>破っていたら差し戻す</span>
-            </div>
-          </div>
-
-          <p>ここで Hooks を使います。差し込めるタイミングはいくつかありますが、実用上は次の3つで足ります。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "26%" }}>タイミング</th><th style={{ width: "26%" }}>できること</th><th>主な用途</th></tr>
-            <tr><td>ファイル編集の<strong>前</strong></td><td>編集を止める</td><td>触ってはいけないファイルの保護</td></tr>
-            <tr><td>ファイル編集の<strong>後</strong></td><td>ブロック／通知</td><td>規約違反の検知、必要作業の想起</td></tr>
-            <tr><td><strong>完了報告の直前</strong></td><td>ブロック／通知</td><td>「やり残し」の検出</td></tr>
-          </tbody></table>
-          </div>
-
-          <p><strong>ブロック</strong>（対処するまで終われない）と<strong>通知</strong>（止めない）の使い分けは5章で扱います。</p>
-
-          <h3>最も効くのは「完了報告の直前」</h3>
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>AIが手を抜くのは、常に「終わりにしようとする瞬間」だからです。</span>
-            ここにゲートを置くと、以下が自動で起きます。
-          </div>
-          <ul>
-            <li>5ファイル以上直したのに作業記録を書いていない → 指摘して書かせる</li>
-            <li>ソースを直したのに対応するREADMEを直していない → 指摘して直させる</li>
+            <li>5ファイル以上直したのに作業記録が無い → 書かせる</li>
+            <li>ソースを直したのに README を直していない → 直させる</li>
             <li>テストを実行していない → 実行させる、または「未実施」と明記させる</li>
           </ul>
+        </Note>
+        <Note tone="good" title="起きている本質的な変化">
+          <p>指示はAIに<b>解釈</b>されるが、hook はAIの<b>外側</b>で実行される。AIが文脈を見失っていても、同じ判定が返る。規律の担保先を、AIの内側から外側へ ── これが設計思想の全部です。</p>
+        </Note>
+      </Sheet>
 
-          <p>差し戻されたAIは、指摘に対処してから改めて終了します。
-          <strong>人間が毎回チェックする必要がなくなる</strong>のがポイントです。</p>
+      {/* ===================== 3 ===================== */}
+      <Sheet id="s3" no="03" title="規範と検証の関係">
+        <p>仕組みは2つの部品。ルール番号で1対1に紐づけます。</p>
+        <Flow
+          dir="col"
+          steps={[
+            { title: "規範（CLAUDE.md）", sub: "何を守るか。20個程度の行動ルール。人間が決める" },
+            { title: "検証（Hooks）", sub: "守られたかを見る。ルールごとに1スクリプト。機械がやる", tone: "key" },
+          ]}
+        />
 
-          <div className={`${styles.callout} ${styles.good}`}>
-            <span className={styles.title}>ここで起きている本質的な変化</span>
-            指示は「AIに解釈される」ものですが、hook は<strong>AIの外側で実行されます。</strong>
-            AIがどれだけ文脈を見失っていても、hook は同じ判定を返します。
-            <strong>規律の担保先を、AIの内側から外側に移すこと</strong>── これが全体の設計思想です。
-          </div>
-        </section>
+        <h3>両方に書くのは二重記載？ ── 時制が違う</h3>
+        <Grid min="16rem">
+          <Card tag="CLAUDE.md＝行動の前">
+            <p>確率的。ふだんの大半を止めるが、長い作業ほど薄まる。機械判定できないことも書ける。</p>
+          </Card>
+          <Card tag="hook＝行動の後" tone="key">
+            <p>決定論的。AIの状態と無関係に必ず走る。機械判定できることだけ。</p>
+          </Card>
+        </Grid>
+        <Note title="規約ドキュメントと Lint の関係と同じ">
+          <p>規約は事前に伝えるもの、Lint は伝わらなかったぶんを後から捕まえるもの。片方を消すと、CLAUDE.md が無ければ<b>毎回1回違反してから差し戻される</b>（往復が増える）。hook が無ければ1章に逆戻りです。</p>
+        </Note>
+        <Note tone="warn" title="二重化してはいけないのは「ルールの定義」">
+          <p>定義の正典は CLAUDE.md だけ。hook のメッセージは「[ルール5]」と番号で参照するだけにする。番号を頭に付けられない hook は、規範に紐づかない＝どこにも書かれていないルールが hook にだけ生きている状態です。状況依存の手順は hook が持つので、規範は1行で済みます。</p>
+        </Note>
 
-        {/* ===================== 3 ===================== */}
-        <section id="s3">
-          <h2><span className={styles.num}>3</span>規範と検証の関係</h2>
+        <h3>どのルールに hook が要るか</h3>
+        <Tree
+          rows={[
+            {
+              q: <b>破られたら、人間は気づく？</b>,
+              yes: <><b>規範だけでよい</b><br />例：日本語で書く／未対応事項を含める（読めば分かる）</>,
+              noLabel: "気づかない",
+            },
+            {
+              q: <b>機械で判定できる？</b>,
+              yes: <><b>hook を書く</b><br />例：テストを実行したか（報告文面は、実行した回としない回で変わらない）</>,
+              noLabel: "できない",
+            },
+          ]}
+          end={<><b>ルールとして機能しない</b>。願望であって、書かない方がまし。「注意する」「意識する」で終わる文はここ。</>}
+        />
+        <Dots on={5} total={14} label="共通ルール14個のうち、hookを書いているのは5個" />
+        <p className="art-small">運用中の共通ルール14個のうち、hook を書いたのは5個だけ。気づけるルールにまで書くと通知が増え、本当に気づけないルールの通知が埋もれます。</p>
+      </Sheet>
 
-          <p>仕組みは2つの部品でできています。</p>
+      {/* ===================== 4 ===================== */}
+      <Sheet id="s4" no="04" title="規範をどう書くか">
+        <h3>まず「置き場所」を分ける</h3>
+        <Grid min="16rem">
+          <Card tag="共通ルール（ホーム配下）">
+            <p>どの案件でも成り立つ<b>仕事の進め方</b>。<b>20個が上限</b>。</p>
+          </Card>
+          <Card tag="プロジェクトルール（リポジトリ配下）">
+            <p>その案件・技術スタック<b>固有の事情</b>。上限なし（1ルール1行は同じ）。</p>
+          </Card>
+        </Grid>
+        <Quote>
+          判定の問い：<b>「他のプロジェクトでも同じことを指摘するか？」</b> Yes なら共通、No ならプロジェクト。
+        </Quote>
+        <p className="art-small">1つの無関係なルールが規範全体の信頼度を下げます。逃がし先があるから、次の「20個まで」を守れます。</p>
 
-          <div className={styles.stack}>
-            <div className={styles.layer}>
-              <span className={styles.lname}>規範</span>
-              <span className={styles.ldesc}>何を守るか ── 20個程度の行動ルール（CLAUDE.md）</span>
-              <span className={styles.lwho}>人間が決める</span>
-            </div>
-            <div className={styles.arrow}><b>↓</b>ルール番号で紐づく</div>
-            <div className={styles.layer}>
-              <span className={styles.lname}>検証</span>
-              <span className={styles.ldesc}>守られたかを見る ── ルールごとに1スクリプト（Hooks）。強度の違う3層がある（5章）</span>
-              <span className={styles.lwho}>機械がやる</span>
-            </div>
-          </div>
+        <h3>ルールを「作業のどの瞬間に効くか」で3つに分ける</h3>
+        <Flow
+          steps={[
+            { title: "開始ゲート", sub: "着手前。作業記録を作る／方向が2通りなら1文で確認／過去の調査結果を再利用" },
+            { title: "実装ゲート", sub: "手を動かす間。対象リポジトリ・ブランチを1コマンドで確認／範囲外を触らない" },
+            { title: "完了ゲート", sub: "報告前。変更ファイル一覧・テスト結果・未対応事項を必ず含める", tone: "key" },
+          ]}
+        />
+        <Note title="ルールを分類するのはゲート、検証を置くのは「違反が確定する瞬間」">
+          <p>「着手前に作業記録を作る」は開始ゲートのルールですが、守られたか分かるのは終わった時。だから hook は完了報告の直前に置きます。どのゲートにも置けないルールは、たいてい願望です。</p>
+        </Note>
 
-          <p>「ルール5」に対応する hook、「ルール14」に対応する hook、という形で1対1に紐付けます。
-          この章では、この2つの関係について、必ず出る2つの疑問に答えておきます。</p>
+        <h3>3つのメタルール</h3>
+        <Grid min="13.5rem">
+          <Card tone="key" tag="① 個数">
+            <b className="art-card-title">共通ルールは20個まで</b>
+            <p>放っておくと増え、増えるほど遵守率が下がる。追加は既存1つの削除とセット。捨てる候補が見つからないなら、追加するほどのものではない。</p>
+          </Card>
+          <Card tone="key" tag="② 長さ">
+            <b className="art-card-title">1ルール1行</b>
+            <p>条件と動作だけ。1行に収まらないものは複数が混ざっている。全体が一画面に収まり、モデルの世代交代（Opus 5 → 5.5 でも実感）でも陳腐化しにくい。</p>
+          </Card>
+          <Card tone="key" tag="③ 番号">
+            <b className="art-card-title">番号は固定ID</b>
+            <p>削除しても振り直さない（欠番を許容）。「ルール5違反です」の一言で通じる。</p>
+          </Card>
+        </Grid>
+        <Versus
+          left={{
+            tag: "✕ 1行に収まらない",
+            children: <p>コードを修正するときは、対象リポジトリを間違えないよう注意し、ブランチが正しいか確認したうえで、必要なら作業ツリーを整理してから着手すること。…</p>,
+          }}
+          right={{
+            tag: "◯ 実際に運用しているもの",
+            children: <p>コード修正・コマンド実行の前に、作業ディレクトリ・ブランチ・HEAD を1コマンドで確認する。</p>,
+          }}
+        />
 
-          <h3>両方に書くのは、二重記載ではないか</h3>
-
-          <p>「CLAUDE.md にテストしろと書き、hook でもテストを確認する。同じことを2回書いているのでは？」
-          ── そうではありません。<strong>両者は時制が違います。</strong></p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "22%" }}></th><th style={{ width: "39%" }}>CLAUDE.md</th><th>hook</th></tr>
-            <tr><td><strong>働くタイミング</strong></td><td>行動の<strong>前</strong>（事前指示）</td><td>行動の<strong>後</strong>（事後検証）</td></tr>
-            <tr><td><strong>効き方</strong></td><td>確率的（ふだんは効くが、長い作業ほど薄まる）</td><td>決定論的（AIの状態と無関係に必ず走る）</td></tr>
-            <tr><td><strong>守備範囲</strong></td><td>機械判定できないことも書ける</td><td>機械判定できることだけ</td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>コーディング規約ドキュメントと Lint の関係と同じです。</span>
-            誰も「Lint を入れたから規約ドキュメントを消せ」とは言いません。
-            規約は書き手に<strong>事前に伝えるもの</strong>、Lint は<strong>伝わらなかったぶんを後から捕まえるもの</strong>で、役割が違うからです。
-          </div>
-
-          <p>片方を消すとどうなるかで考えると、分担がはっきりします。</p>
-          <ul>
-            <li><strong>CLAUDE.md を消して hook だけにする</strong> → AIは事前に何も知らないので、
-              <strong>毎回1回違反してから差し戻される</strong>ことになります。往復が増え、時間もトークンも無駄になります</li>
-            <li><strong>hook を消して CLAUDE.md だけにする</strong> → 1章の状態に戻ります</li>
-          </ul>
-          <p>事前指示がふだんの大半を止めてくれるから、hook の発火が例外的なもので済んでいます。<strong>どちらも要ります。</strong></p>
-
-          <h4>ただし、してはいけない二重化はある</h4>
-
-          <p>危ないのは「両方に書いてあること」ではなく、<strong>ルールの定義そのものが2箇所にあって、あとから食い違うこと</strong>です。分担はこうなります。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "38%" }}>何を</th><th style={{ width: "26%" }}>CLAUDE.md</th><th>hook のメッセージ</th></tr>
-            <tr><td><strong>ルールの定義</strong>（何を守るか）</td><td>◯ <strong>正典はここだけ</strong></td><td>✕ 書かない</td></tr>
-            <tr><td>ルール番号</td><td>◯ 固定ID（4章）</td><td>◯ <strong>参照するだけ</strong></td></tr>
-            <tr><td>検知条件（いつ鳴るか）</td><td>✕</td><td>◯</td></tr>
-            <tr><td>その場の具体手順（どう直すか）</td><td>✕</td><td>◯</td></tr>
-            <tr><td>逃げ道の条件</td><td>△</td><td>◯</td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.good}`}>
-            <span className={styles.title}>規範を1行に保てるのは、hook が手順を引き受けているからです。</span>
-            「FrontEnd は lint をプロジェクト全体で実行し、テストは専用の手順を経由する」といった話を CLAUDE.md に書いたら、1行には絶対に収まりません。
-            こうした状況依存の手順は hook のメッセージが持ち、規範は「ビルドとテストを実行する」の1行で済ませる。
-            <strong>次章の「1ルール1行」が成立しているのは、この分担があるからです。</strong>
-          </div>
-
-          <div className={`${styles.callout} ${styles.warn}`}>
-            <span className={styles.title}>自己診断：hook のメッセージを「[ルール5]」で始められますか。</span>
-            始められないなら、その hook は<strong>規範に紐づいていません。</strong>
-            どこにも書かれていないルールが hook にだけ生きている状態で、AIは差し戻されて初めてその存在を知り、
-            規範を読み返しても書いていないので次も同じことをします。
-            <strong>番号を頭に付けるという作業そのものが、対応するルールの有無を強制的に確認させます。</strong>
-          </div>
-
-          <h3>どのルールに hook が要るか</h3>
-
-          <p>規範の全部に hook を書く必要はありません。基準は「検証が書けるか」ではなく、
-          <strong>「破られたときに、人間が気づくか」</strong>です。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "17%" }}>破られたら気づくか</th><th style={{ width: "16%" }}>機械で判定できるか</th><th style={{ width: "25%" }}>扱い</th><th>例</th></tr>
-            <tr><td><strong>気づく</strong></td><td>—</td><td><strong>規範だけでよい</strong></td><td>日本語で書く／完了報告に未対応事項を含める ── 読めば分かる</td></tr>
-            <tr><td><strong>気づかない</strong></td><td>できる</td><td><strong>hook を書く</strong></td><td>テストを実行したか ── 報告の文面は、実行した回としない回で変わらない</td></tr>
-            <tr><td><strong>気づかない</strong></td><td>できない</td><td><strong>ルールとして機能しない</strong></td><td>「設計を妥当に保つ」── 願望であって、ルールではない（5章）</td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>hook が要るのは、破られても気づかないルールだけです。</span>
-            ここを取り違えて、気づけるルールにまで hook を書くと通知が増え、
-            <strong>本当に気づけないルールの通知が、その中に埋もれます。</strong>
-            運用している共通ルール14個のうち、hook を書いているのは5個だけです。
-          </div>
-
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>逆に、3行目に当たるルールは書かない方がましです。</span>
-            破られても気づかず、機械でも判定できないものは、書いた時点で満足して終わります。
-            「注意する」「意識する」で終わる文になったら、この行に落ちているサインです（4章）。
-          </div>
-
-          <p>以降、規範と検証を順に見ていきます。</p>
-        </section>
-
-        {/* ===================== 4 ===================== */}
-        <section id="s4">
-          <h2><span className={styles.num}>4</span>規範をどう書くか</h2>
-
-          <h3>まず「どこに置くか」を分ける</h3>
-          <p>ルールの中身の前に、置き場所の話をします。ここを分けておかないと、後述の「20個まで」が成立しません。</p>
-          <p>CLAUDE.md は階層的に置けます。ホーム配下に置けば全プロジェクトで読まれ、
-          リポジトリ配下に置けばそのプロジェクトでのみ読まれます（両方ある場合は両方読まれます）。
-          この2つを、明確に役割で分けます。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "18%" }}></th><th style={{ width: "41%" }}>共通ルール（ホーム配下）</th><th>プロジェクトルール（リポジトリ配下）</th></tr>
-            <tr><td><strong>書くこと</strong></td><td>どの案件でも成り立つ<strong>仕事の進め方</strong></td><td>その案件・技術スタック<strong>固有の事情</strong></td></tr>
-            <tr><td><strong>例</strong></td><td>完了報告に変更ファイル一覧・テスト結果・未対応事項を含める</td><td>stage以降のブランチはPR必須／入力エラーは項目横ではなくメッセージエリアに表示する</td></tr>
-            <tr><td><strong>個数</strong></td><td><strong>20個が上限</strong></td><td>上限なし（1ルール1行は同じ）</td></tr>
-            <tr><td><strong>判定</strong></td><td colSpan={2}>「<strong>他のプロジェクトでも同じことを指摘するか？</strong>」── Yesなら共通、Noならプロジェクト</td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>共通側に案件固有のルールを書かない理由</span>
-            書いた本人には有用でも、<strong>他の9割のプロジェクトではノイズ</strong>です。
-            そして「自分に関係ないことが書いてある文書」は、関係のある部分まで含めて読み飛ばされます。
-            <strong>1つの無関係なルールが、規範全体の信頼度を下げる</strong>── 人間の規程類とまったく同じです。<br />
-            逆に言えば、<strong>逃がし先があるから次の「20個まで」を守れます。</strong>プロジェクト側に書く場所がないと、
-            無理に一般化した曖昧なルールを書くか、上限そのものが破られます。
-          </div>
-
-          <p>以下の話は、断りがない限り<strong>共通ルール</strong>についてのものです。</p>
-
-          <h3>ゲートを3つに分ける</h3>
-          <p>ルールを羅列すると読まれません。<strong>作業のどの瞬間に効くか</strong>で分類します。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "20%" }}>ゲート</th><th style={{ width: "20%" }}>タイミング</th><th>ルールの例</th></tr>
-            <tr><td><strong>開始ゲート</strong></td><td>着手する前</td><td>大きい作業なら作業記録を作る／方向が2通りあるなら1文で確認する／過去の調査結果があれば再調査せず使う</td></tr>
-            <tr><td><strong>実装ゲート</strong></td><td>手を動かす間</td><td>作業対象のリポジトリ・ブランチを1コマンドで確認してから触る／依頼範囲外のファイルを変更しない</td></tr>
-            <tr><td><strong>完了ゲート</strong></td><td>報告する前</td><td>変更ファイル一覧・テスト結果・未対応事項を必ず含める</td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>ゲートの位置と、検証を置く位置は一致しません。</span>
-            「着手前に作業記録を作る」は開始ゲートのルールですが、<strong>着手した時点では守られたか判定できません。</strong>
-            分かるのは終わったときなので、検証（hook）は完了報告の直前に置きます。
-            <strong>ルールを分類するのはゲート、検証を置くのは「違反が確定する瞬間」</strong>── 別物として考えてください。
-          </div>
-
-          <div className={`${styles.callout} ${styles.good}`}>
-            <span className={styles.title}>副次効果</span>
-            新しいルールを思いついたとき「どのゲートか」を考えることで、
-            <strong>それが本当にルールなのか、単なる願望なのかが判別できます。</strong>
-            どのゲートにも置けないものは、たいてい願望です。
-          </div>
-
-          <h3>メタルール①：共通ルールは20個までにする</h3>
-          <p>これが実は一番重要な発見でした。ルールは放っておくと増えます。失敗するたびに1つ足したくなるからです。
-          しかし<strong>ルールが増えると、全体の遵守率が下がります。</strong>（人間もAIも同じです）</p>
-
-          <div className={styles.quote}>ルールは20個を上限とする。追加する場合は既存ルール1つの削除とセットで行う。</div>
-
-          <p><strong>上限があると、「本当にこれは既存ルールより重要か」を毎回考えることになります。</strong>
-          追加したいルールが出てきて捨てる候補が見つからないなら、それは追加するほどのものではなかった、ということです。</p>
-
-          <h3>メタルール②：1ルールを1行に収める（①と対）</h3>
-          <p>「20個まで」が<strong>個数</strong>の制約だとすれば、こちらは<strong>長さ</strong>の制約です。
-          ルールは1つにつき1行で書き、条件と動作だけを残します。</p>
-
-          <div className={styles.duo}>
-            <div className={`${styles.flow} ${styles.before}`} style={{ fontFamily: "inherit", fontSize: "14px" }}>
-              <span className={styles.ftag}>✕ 1行に収まらない</span>
-              コードを修正するときは、対象リポジトリを間違えないよう注意し、ブランチが正しいか確認したうえで、必要なら作業ツリーを整理してから着手すること。複数リポジトリにまたがる場合は特に慎重に扱う。
-            </div>
-            <div className={`${styles.flow} ${styles.after}`} style={{ fontFamily: "inherit", fontSize: "14px" }}>
-              <span className={styles.ftag}>◯ 実際に運用しているもの</span>
-              コード修正・コマンド実行の前に、作業ディレクトリ・ブランチ・HEAD を1コマンドで確認する。
-            </div>
-          </div>
-
-          <p>1行に制限すると、書いている途中で以下が勝手に炙り出されます。</p>
-          <ul>
-            <li><strong>1行に収まらないルールは、複数のルールが混ざっている。</strong>分解するか、捨てるかを迫られる。</li>
-            <li><strong>「注意する」「意識する」が残るルールは、中身がない。</strong>
-              何をしたら守ったことになるのかが書けていないので、破られても気づけず、機械でも判定できません（3章）。</li>
-            <li><strong>全体が20行に収まる。</strong>一画面で読み切れることが、そのまま遵守率に効きます。
-              読み返すのに気合が要る規範は、人もAIも読み返しません。</li>
-            <li><strong>AIの世代交代で陳腐化しにくい。</strong>長く細かいルールほど、その時点のモデルの癖への対処（手順の細かな指定や言い回しの工夫）が混ざります。
-              モデルが変わるとそれが不要になったり、かえって逆効果になったりします。実際、Opus 5 → 5.5 の移行でもそうでした。
-              条件と動作だけのルールは、モデルが変わっても意味が変わりません。</li>
-          </ul>
-
-          <div className={`${styles.callout} ${styles.good}`}>
-            <span className={styles.title}>「20個以内」と「1行以内」はセットです。</span>
-            個数だけ絞っても、1つが10行あれば結局読まれません。<strong>規範全体を、毎回読み直せるサイズに保つ</strong>のが本当の狙いです。
-          </div>
-
-          <h3>メタルール③：番号を固定IDとして扱う</h3>
-          <p>地味ですが、hook と組み合わせたときに効いてきます。</p>
-          <div className={styles.quote}>番号は固定IDとして扱い、削除しても振り直さない（欠番を許容する）</div>
-          <p>欠番を許すことで、「ルール5」という呼び名が永久に同じものを指します。
-          hook のメッセージやレビューコメントで番号を使えるようになり、<strong>「ルール5違反です」の一言で話が通じます。</strong>
-          振り直す運用にすると、過去のメッセージがすべて別のルールを指すようになって崩壊します。</p>
-
-          <h3>ルールは、思いつきではなく記録から発掘する</h3>
-
-          <p>ここまでは「ルールをどう書くか」でした。最後に、<strong>ルールをどこから見つけるか</strong>です。</p>
-
-          <p>規範は、最初から全部書けるものではありません。
-          <strong>自分が何を当たり前にやっているかは、やっている本人には見えない</strong>からです。
-          意識せずに毎回やっていることほど、ルールとして書き出されません。</p>
-
-          <p>材料になるのは、作業の過程で溜まる記録です。性質の違う2種類があり、<strong>混ぜないことだけ</strong>守れば十分です。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "14%" }}></th><th style={{ width: "43%" }}>作業記録</th><th>判断記録</th></tr>
-            <tr><td><strong>目的</strong></td><td>中断しても再開できる</td><td>なぜそう決めたかを残す</td></tr>
-            <tr><td><strong>寿命</strong></td><td>作業が終われば役目を終える（使い捨て）</td><td>消さない</td></tr>
-            <tr><td><strong>分量</strong></td><td>制限なし。「対象外（今回触らないもの）」を先に書いておくと、依頼範囲外を触る事故が減る</td>
-              <td><strong>3行</strong>（背景／決定／理由）。長いと書かれない</td></tr>
-          </tbody></table>
-          </div>
-
-          <p>これが溜まってくると、そこに反復が現れます。</p>
+        <h3>ルールは、思いつきではなく記録から発掘する</h3>
+        <p>自分が何を当たり前にやっているかは、本人には見えません。材料は作業の過程で溜まる2種類の記録で、<b>混ぜないことだけ</b>守れば十分です。</p>
+        <Grid min="16rem">
+          <Card tag="作業記録">
+            <p>中断しても再開できる。使い捨て。「対象外（今回触らないもの）」を先に書くと、範囲外を触る事故が減る。</p>
+          </Card>
+          <Card tag="判断記録">
+            <p>なぜそう決めたかを残す。消さない。<b>3行</b>（背景／決定／理由）。長いと書かれない。</p>
+          </Card>
+        </Grid>
+        <Note title="反復は、まだ明文化されていない規律が既にある、というサイン">
           <ul>
             <li>同じ論点に、毎回同じ結論を出している</li>
-            <li>作業記録の「対象外」に、いつも同じ種類のものを書いている</li>
-            <li>判断記録の「理由」が、別案件なのに同じ観点に帰着している</li>
+            <li>「対象外」に、いつも同じ種類のものを書いている</li>
+            <li>別案件なのに、「理由」が同じ観点に帰着している</li>
           </ul>
+          <p>無意識に守っていたことを明文化したルールは、最初から守られます。記録に一度も現れないルールは、たいてい実務で使われていません（捨てる候補）。</p>
+        </Note>
+      </Sheet>
 
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>反復は、まだ明文化されていない規律が既にそこにある、というサインです。</span>
-            実際に何度も必要になったことだけが残っているので、精度が高くなります。
-            思いつきで書いたルールは守られませんが、<strong>すでに無意識に守っていたことを明文化したルールは、最初から守られています。</strong>
-          </div>
+      {/* ===================== 5 ===================== */}
+      <Sheet id="s5" no="05" title="検証をどう作るか">
+        <Note title="この章の要点（実装しない方はここだけで結構）">
+          <ul>
+            <li>検証には強度の違う<b>3つの層</b>がある</li>
+            <li>共通原則は<b>「判定は機械、修正はAI」</b></li>
+            <li>敵は<b>誤検知</b>と<b>沈黙</b>。通知から始め、書いた直後にわざと鳴らす</li>
+          </ul>
+        </Note>
 
-          <p>メタルール①で「捨てる候補」を選ぶときも同じです。
-          <strong>記録に一度も現れていないルールは、たいてい実務で使われていないルールです。</strong>
-          7章では「自分が繰り返し指摘していることを1つ思い出す」ところから始めると書きますが、
-          記憶に頼る必要はありません。記録を見返せば列挙できます。</p>
-        </section>
+        <h3>検証の3層</h3>
+        <Steps
+          items={[
+            {
+              title: "コードで白黒つける",
+              sub: <>機械が判定 → AIが直す。ファイルを読めば白黒つくもの：文字コード、記述規約、禁止パターン</>,
+            },
+            {
+              title: "プロンプトで再判断させる",
+              sub: <>機械が検知 → <b>AIが判断</b>して直す。「あるはずのものが無い」：README同期、作業記録の有無</>,
+            },
+            {
+              title: "人間に投げる",
+              sub: <>機械が検知 → <b>人間が判断</b>。誤ると損害が大きいもの：保護対象ファイルの変更</>,
+            },
+          ]}
+        />
+        <Note tone="bad" title="どれにも当てはまらないものは、hook にしない">
+          <p>「設計が妥当か」を載せると、AIの成果物をAIに評価させることになり、結果は「常に通る」か「常に鳴る」で情報量ゼロ。hook は「必ず走る」ことが価値で、曖昧な判定を載せてはいけません。</p>
+        </Note>
+        <Note title="3層に共通する原則：判定は機械、修正はAI">
+          <p>その場でスクリプトに直させたくなりますが、hook 自身にファイルを書き換えさせない。</p>
+          <ul>
+            <li>黙って直すと、AIは何を外したか知らないまま同じ違反を繰り返す</li>
+            <li>誤検知のとき、差し戻しならAIは反論できるが、自動修正は正しいコードを黙って壊す</li>
+            <li>差し戻せば「AIが直す → 次の編集で同じ hook が走る」でループが閉じる</li>
+          </ul>
+        </Note>
 
-        {/* ===================== 5 ===================== */}
-        <section id="s5">
-          <h2><span className={styles.num}>5</span>検証をどう作るか</h2>
+        <h3>どの層も、最初は「通知」から</h3>
+        <Dots on={3} total={10} label="運用中のhook10本のうち、実際に止めているのは3本" />
+        <p className="art-small">運用中の10本のうち、止めている（ブロック）のは3本だけ。誤検知が1回あると一気に信頼を失い、hook ごと消されます。「正しいのに止められた」は「間違っているのに素通りした」より遥かに強く記憶に残ります。</p>
 
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>この章の要点（実装しない方はここだけで結構です）</span>
-            <ul style={{ margin: "6px 0 0 20px" }}>
-              <li>検証には強度の違う<strong>3つの層</strong>がある ── ①コードで白黒つける ②AIに再判断させる ③人間に投げる</li>
-              <li>共通原則は<strong>「判定は機械、修正はAI」</strong>。hook 自身にファイルを書き換えさせない</li>
-              <li>敵は<strong>誤検知</strong>と<strong>沈黙</strong>。通知から始め、書いた直後にわざと鳴らして確認する</li>
-            </ul>
-          </div>
+        <h3>層①：コードで白黒つける</h3>
+        <p>ファイルを読んで条件を見るだけ。AIは関与せず、同じ入力には必ず同じ判定。<b>1本あたり実質20行の Python</b> です。難しいのは書くことではなく、誤検知させないこと。</p>
+        <Fold summary="半年運用して残った、誤検知させない4つの型">
+          <Table>
+            <thead>
+              <tr>
+                <th>型</th>
+                <th>踏んだ失敗 → 対処</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>今回の変更分だけを見る</td>
+                <td>ファイル全体や未コミット差分で判定すると、既存コメントを毎回叩く／別作業の差分で毎回鳴る → ツールの入力から「今回書かれた文字列」だけを検査</td>
+              </tr>
+              <tr>
+                <td>規約の片側だけ検査</td>
+                <td>BOM必須側を検査すると既存ファイルが大量に引っかかる → 禁止側だけ。実害が出る半分に絞る</td>
+              </tr>
+              <tr>
+                <td>逃げ道を先に用意</td>
+                <td>例外を認めない hook は、正当な例外が1回出た瞬間に消される → 抑止キーワードでスキップ可に</td>
+              </tr>
+              <tr>
+                <td>既知の衝突を潰す</td>
+                <td>
+                  <code>{"ADR-\\d+"}</code> がOracleの <code>ADR1</code> に、<code>{"#\\d{3,}"}</code> がCSSの色コードに当たる。<code>{"\\b"}</code> は日本語で機能しない → 狭める、を数回繰り返す
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+        </Fold>
 
-          <h3>検証の3層</h3>
+        <h3>層②：プロンプトで再判断させる</h3>
+        <p>例：「ソースを変更したのに README を更新していない」。<b>検知は機械で100%できる</b>が、<b>更新すべきかは文脈が要る</b>（内部リファクタなら不要）。そこで検知は機械、判断はAIに戻します。差し戻しの理由文は、そのままAIに渡る<b>hook が書くプロンプト</b>です。</p>
+        <Grid min="9.5rem">
+          <Card tag="1" title="事実"><p>READMEを更新していない</p></Card>
+          <Card tag="2" title="規範"><p>本運用ではセットで行う</p></Card>
+          <Card tag="3" title="証拠"><p>変更したソースのファイル名</p></Card>
+          <Card tag="4" title="逃げ道" tone="key"><p>不要なら、理由を1行で明言する</p></Card>
+        </Grid>
+        <Note tone="bad" title="逃げ道のない差し戻しは、素通りより悪い">
+          <p>AIは「対処しないと終われない」と必ず何かをします。README更新が不要な場面で逃げ道を塞ぐと、中身のない一文を足して通過しようとする ── ゲートを通るためだけの偽装を生産させてしまう。「やらない」選択肢を、「理由を言え」という条件つきで必ず与えます。</p>
+        </Note>
+        <Fold summary="層②に特有の事故2つと、タイミング別の強度">
+          <ul>
+            <li><b>無限ループ</b>：差し戻す → AIが対処して再び完了しようとする → また同じ hook が走る。データに「再入か」のフラグがあるので、真なら無条件で素通り（層②の最初の一手）</li>
+            <li><b>同じことを何度も言わない</b>：同じ指摘が3回出ると無視される。ブロックは1セッション1回、2回目以降は通知に落とす。通知の価値は回数に反比例</li>
+            <li><b>強度はタイミングで変える</b>：ビルド・テストの想起は、編集直後は通知、完了報告の直前はブロック（最後の機会）</li>
+          </ul>
+        </Fold>
 
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "5%" }}></th><th style={{ width: "22%" }}>層</th><th style={{ width: "24%" }}>判定 → 対処</th><th>見分け方</th></tr>
-            <tr><td><strong>①</strong></td><td><strong>コードで白黒つける</strong></td><td>機械が判定 → AIが直す</td><td>ファイルを読めば白黒つくか<br /><span style={{ color: "var(--sub)", fontSize: "13px" }}>文字コード、記述規約、禁止パターン</span></td></tr>
-            <tr><td><strong>②</strong></td><td><strong>プロンプトで再判断させる</strong></td><td>機械が検知 → <strong>AIが判断</strong>して直す</td><td>「あるはずのものが無い」を状態の突合で検知できるか<br /><span style={{ color: "var(--sub)", fontSize: "13px" }}>README同期、作業記録の有無</span></td></tr>
-            <tr><td><strong>③</strong></td><td><strong>人間に投げる</strong></td><td>機械が検知 → <strong>人間が判断</strong></td><td>誤ったときの損害が大きく、人間の判断を残したいか<br /><span style={{ color: "var(--sub)", fontSize: "13px" }}>保護対象ファイルの変更</span></td></tr>
-          </tbody></table>
-          </div>
+        <h3>層③：人間に投げる</h3>
+        <p>ツール実行の前に「人間に許可を求める」を返す。使っているのは実質1本、<code>package.json</code> / <code>package-lock.json</code> の書き換えだけ。npm系コマンドの副作用で勝手に変わるうえ、AIは自分の副作用を異常と認識できないからです。</p>
+        <Note title="判断させない領域を、意識して1〜2つ残す">
+          <p>全部を自動化すると、何が起きているかを誰も見なくなります。人間が必ず1回は目を通す場所を、コストの高い操作の手前に置くのが結果的にいちばん安く済みました。</p>
+        </Note>
 
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>どれにも当てはまらないものは、hook にしない。</span>
-            「コードの品質が十分か」「設計が妥当か」は3層のどれにも乗りません。
-            無理に hook にすると<strong>AIの成果物をAIに評価させる</strong>ことになり、結果は「常に通る」か「常に鳴る」のどちらか、どちらも情報量がゼロです。<br />
-            <strong>hook は「必ず走る」ことが価値です。必ず走るものに、曖昧な判定を載せてはいけません。</strong>
-          </div>
+        <h3>最後に：hook は黙って死ぬ</h3>
+        <Flow
+          steps={[
+            { title: "Windows の既定文字コードで日本語を読む" },
+            { title: "JSON解析に失敗して落ちる" },
+            { title: "終了コード2以外は「hook自身のエラー」として無視される" },
+            { title: "画面には何も出ない", sub: "毎回落ちていて、一度も検証していない状態が何日も続く", tone: "bad" },
+          ]}
+        />
+        <Note tone="warn" title="導入したら必ず「わざと違反して、鳴ること」を確認する">
+          <p>対策は1行（標準入力をバイト列で読み、UTF-8でデコード）。問題は難しさではなく、壊れていることに気づけないこと。ゲートがあると思って安心している状態は、無いと分かっている状態より危険です。6章では、同じ失敗が計測側でも起きていたことに触れます。</p>
+        </Note>
+      </Sheet>
 
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>3層に共通する原則：判定は機械、修正はAI。</span>
-            違反を検知したとき、その場でスクリプトに直させたくなります。数行で書けますし、そのほうが速い。
-            <strong>それでも hook 自身にファイルを書き換えさせてはいけません。</strong>
-            <ul style={{ margin: "8px 0 0 20px" }}>
-              <li>黙って直されると、AIは<strong>自分が何を外したかを知らないまま</strong>次に進み、同じ違反を繰り返す</li>
-              <li>誤検知したとき、差し戻しならAIは反論できるが、自動修正は<strong>正しいコードを黙って壊す</strong></li>
-              <li>差し戻せば「AIが直す → 次の編集で同じ hook が走る」で<strong>ループが閉じる</strong></li>
-            </ul>
-          </div>
+      {/* ===================== 6 ===================== */}
+      <Sheet id="s6" no="06" title="効果は測れているのか">
+        <p>結論：量的には<b>「悪化していない」としか言えず</b>、質的には<b>「指摘の中身が変わった」と言える</b>。</p>
 
-          <div className={`${styles.callout} ${styles.warn}`}>
-            <span className={styles.title}>どの層も、最初は「通知」から始めてください。</span>
-            止める（ブロックする）のは、誤検知が1回あるだけで一気に信頼を失い、hook ごと消されます。
-            「正しいのに止められた」という体験は、「間違っているのに素通りした」より遥かに強く記憶に残ります。
-            現在運用している10本のうち、実際に止めているのは3本だけです。
-          </div>
+        <h3>量：数値では言い切れない</h3>
+        <Bars
+          rows={[
+            { label: "運用開始時の修正指摘率", value: 2.3, max: 3, text: "2.3%", tone: "dim" },
+            { label: "約2か月後", value: 2.05, max: 3, text: "2.0〜2.1%", tone: "good" },
+          ]}
+        />
+        <p className="art-small">修正指摘率＝AIの出力に対して、ユーザーが訂正・やり直しを入れた割合（会話ログから週次で自動集計）。横ばいで、指標が跳ねたら形骸化に気づける状態ではあります。</p>
+        <Note tone="warn" title="導入前後の比較はできていない">
+          <p>運用開始と集計ロジックの改修（誤検知の除外）がほぼ同時期だったため。物差しを、測りたい変化と同じ時期に変えると、前後は永久に繋がりません。</p>
+        </Note>
+        <Note tone="bad" title="計測そのものが黙って壊れていた">
+          <p>2週続けて「前回比：同等」と出ていたが、実際は新規データがほとんど入っていなかった（収集対象が1プロジェクト固定で、主戦場が別リポジトリに移っていた）。「同等」という無害な表示で2週間隠れた ── 5章と同じ失敗です。hook も計測も、「沈黙」と「正常」が区別できない形にしてはいけない。</p>
+        </Note>
 
-          <h3>層①：コードで白黒つける</h3>
+        <h3>質：指摘の「中身」が入れ替わった</h3>
+        <Versus
+          left={{
+            tag: "運用開始前によくあった指摘",
+            children: (
+              <ul>
+                <li>文字コード：「文字化けしてるので直して」</li>
+                <li>動作確認：「エラーが出てるので確認して」</li>
+                <li>ドキュメント同期：「とりあえずREADMEは修正して」</li>
+                <li>対象範囲：「その2項目は残して（消さないで）」</li>
+              </ul>
+            ),
+          }}
+          right={{
+            tag: "現在",
+            children: (
+              <>
+                <p><b>左の4種は、ほぼ消滅</b>（いずれも hook を書いた項目）。</p>
+                <p>残っているのは「この条件を追加して、本来の仕様に合わせて」「データフロー図にこの経路が載っていない」── <b>仕様の解釈と設計判断</b>だけ。</p>
+              </>
+            ),
+          }}
+        />
+        <Note title="数値には出ていない、実際の変化">
+          <p>手順の抜けを指摘していた時間が、仕様の詰めに向くようになった。残ったのは、人間が判断するしかないことだけです。</p>
+        </Note>
+        <p className="art-small">※ 事例集を筆者が読んで分類した主観的な評価で、統計的な検証ではありません。件数の減少幅は、収集の網羅性が落ちている可能性があるため根拠にしていません。</p>
+      </Sheet>
 
-          <p>いちばん確実な層です。<strong>ファイルを読んで、条件に当てはまるかを見るだけ。</strong>
-          AIは一切関与しないので、同じ入力には必ず同じ判定が返ります。</p>
+      {/* ===================== 7 ===================== */}
+      <Sheet id="s7" no="07" title="導入コストと落とし穴">
+        <h3>やってはいけない導入</h3>
+        <Grid min="13rem">
+          <Card tone="bad" stamp="NG" title="いきなり全部入れる">
+            <p>ルール20個＋hook 10本は、誤検知と通知の洪水で3日で外すことになる。</p>
+          </Card>
+          <Card tone="bad" stamp="NG" title="人の設定をコピーする">
+            <p>関係ないルールが混ざると、規範全体の信頼度が下がる（4章）。</p>
+          </Card>
+          <Card tone="bad" stamp="NG" title="最初からブロックする">
+            <p>信頼を失った hook は、二度と使われない（5章）。</p>
+          </Card>
+        </Grid>
 
-          <p>hook に渡ってくるのは標準入力のJSON1つ（どのツールで・どのファイルを・何を書いたか）だけ。
-          読んで、判定して、<code>sys.exit(2)</code> と一緒にメッセージを返せばAIに差し戻されます。
-          <strong>1本あたり実質20行のPythonです。</strong></p>
+        <h3>薦める始め方</h3>
+        <Flow
+          steps={[
+            { title: "繰り返し指摘していることを1つ思い出す", sub: "例：「テストしてから報告して」を今週3回言った" },
+            { title: "CLAUDE.md に1行書く" },
+            { title: "検証する hook を1本だけ（通知のみ）" },
+            { title: "1〜2週間使う", sub: "鳴りすぎなら絞る。効いていれば次の1本へ", tone: "key" },
+          ]}
+        />
+        <Quote>1ルール1hook ずつ。これだけです。</Quote>
 
-          <p>難しいのは書くことではなく、<strong>誤検知させないこと</strong>です。半年運用して残った型が4つあります。</p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "26%" }}>型</th><th style={{ width: "37%" }}>踏んだ失敗</th><th>対処</th></tr>
-            <tr><td><strong>1. 常に「今回の変更分」だけを見る</strong></td>
-              <td>ファイル全体を走査したら、<strong>既存のコメントを毎回叩き</strong>、さらに<strong>「違反を削除する編集」まで差し戻した</strong>。作業ツリーの未コミット差分で判定したら、<strong>別作業の差分で毎回鳴った</strong></td>
-              <td>ツールの入力から「今回新しく書かれた文字列」だけを検査する／会話ログから「このセッションでAIが編集したファイル」だけを数える。<strong>現状ではなく差分を見る</strong></td></tr>
-            <tr><td><strong>2. 規約の片側だけを検査する</strong></td>
-              <td>文字コード規約は「<code>.cs</code> はBOM付き、<code>.ts</code> はBOMなし」の両側規約だが、BOM必須側を検査すると既存ファイルが大量に引っかかる</td>
-              <td>BOM禁止側だけを検査する。<strong>規約の全体を機械化しようとせず、実害が出る半分に絞る</strong></td></tr>
-            <tr><td><strong>3. 逃げ道を先に用意する</strong></td>
-              <td>例外を認めない hook は、<strong>正当な例外が1回出た瞬間に hook ごと消される</strong></td>
-              <td>抑止キーワード（<code>no-encoding-check</code> 等）を書けばスキップできるようにする。その行が「意図的に外した」記録にもなる</td></tr>
-            <tr><td><strong>4. 既知の衝突を先回りで潰す</strong></td>
-              <td><code>ADR-\d+</code> がOracleの住所カラム <code>ADR1</code> に当たる／<code>#\d{"{3,}"}</code> がCSSの色コード <code>#000</code> と衝突する／<code>\b</code> が<strong>日本語で機能しない</strong>（Pythonの <code>\w</code> は日本語も単語文字として扱う）</td>
-              <td>区切り文字を必須にする、パターンごと採用しない、ASCII英数字だけを除外する先読みに置き換える。<strong>誤検知が出たら狭める、を数回繰り返す</strong></td></tr>
-          </tbody></table>
-          </div>
-
-          <h3>層②：プロンプトで再判断させる</h3>
-
-          <p>すべて層①で書けるかというと、書けません。次の例で詰まります。</p>
-
-          <div className={styles.quote}>ソースコードを変更したのに、README を更新していない。</div>
-
-          <p><strong>検知は機械で100%できます。</strong>このセッションで編集したファイルを見て、コードの拡張子があり README がなければよい。
-          しかし<strong>「READMEを更新すべきか」は、機械には決められません。</strong>
-          内部リファクタリングだけなら不要、公開している手順や仕様が変わったなら必須 ──
-          この判断には「今回何をしたか」という文脈が要り、それを持っているのはAIだけです。</p>
-
-          <p>そこで<strong>検知は機械がやり、判断はAIに戻します。</strong>
-          hook が理由文つきで差し戻すと、その理由文がそのままAIに渡り、AIは対処するまで会話を終了できなくなります。</p>
-
-          <div className={`${styles.callout} ${styles.good}`}>
-            <span className={styles.title}>この理由文は、hook が書くプロンプトです。</span>
-            層①のメッセージは「人間が後で読むエラーメッセージ」ですが、層②の理由文は<strong>AIに読ませて行動を変えさせる指示文</strong>です。
-            実際の文面には4つの要素を必ず入れています。<br />
-            <strong>事実</strong>（READMEを更新していない）／<strong>規範</strong>（本運用ではセットで行う）／
-            <strong>証拠</strong>（変更したソースのファイル名）／<strong>逃げ道</strong>（不要ならその理由を1行で明言する）。
-          </div>
-
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>逃げ道のない差し戻しは、素通りより悪い結果を生みます。</span>
-            AIは「対処しないと終われない」状態に置かれると、必ず何かをします。
-            README更新が不要な場面で逃げ道を塞ぐと、<strong>中身のない一文をREADMEに足して通過しようとします。</strong>
-            ゲートを置いたつもりが、ゲートを通るためだけの偽装を生産させていることになります。<br />
-            <strong>「やらない」選択肢を必ず明示的に与える。ただし「理由を言え」という条件付きで。</strong>
-            そうすれば判断がユーザーの目に残り、人間が気づけます。
-          </div>
-
-          <p>止めない版もあります。AIの文脈に文字列を注入するだけの「通知」で、AIは無視して進めます。
-          <strong>同じルールでも、タイミングによって強度を変えます。</strong>
-          ビルド・テスト実行の想起は、ソース編集の直後は<strong>通知</strong>（編集途中で止められたら作業が進まない）、
-          完了報告の直前は<strong>ブロック</strong>（ここが最後の機会）。通知で済んだ回は止まらず、無視した回だけが最後に止まります。</p>
-
-          <div className={`${styles.callout} ${styles.warn}`}>
-            <span className={styles.title}>層②に特有の事故が2つあります。</span>
-            <strong>① 無限ループ。</strong>完了報告の直前で差し戻す → AIが対処して再び完了しようとする → また同じ hook が走る、で終わらなくなります。
-            渡ってくるデータに「すでに一度差し戻した再入か」のフラグがあるので、真なら無条件で素通りさせます。<strong>層②を書くときの最初の一手です。</strong><br />
-            <strong>② 同じことを何度も言わない。</strong>1セッションで同じ指摘が3回出ると無視されます（AIも人間も同じです）。
-            セッションIDを記録してブロックは1回だけにし、2回目以降は通知に落としています。<strong>通知の価値は回数に反比例します。</strong>
-          </div>
-
-          <h3>層③：人間に投げる</h3>
-
-          <p>ツール実行の<strong>前</strong>に「人間に許可を求める」を返すと、実行直前で止まります。AIにも機械にも判断させない、という選択です。
-          使っているのは実質1本、<code>package.json</code> / <code>package-lock.json</code> の書き換えだけ。
-          npm系コマンドの副作用で勝手に変わることがあり、しかも<strong>AIに「これは意図した変更か」を判断させても当てになりません</strong>
-          （自分が起こした副作用を、自分で異常と認識できないため）。</p>
-
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>判断させない領域を、意識して1つか2つ残しておくこと。</span>
-            全部を層①②で自動化すると、何が起きているかを誰も見なくなります。
-            <strong>人間が必ず1回は目を通す場所</strong>を、コストの高い操作の手前に置いておくのが、結果的にいちばん安く済みました。
-          </div>
-
-          <h3>最後に：hook は黙って死ぬ</h3>
-
-          <p>3層すべてに共通する、いちばんたちの悪い失敗です。
-          hook が日本語を含むデータを受け取るとき、Windows の既定文字コードで標準入力を読むと、
-          多バイト文字の境界がずれてJSON解析に失敗し、スクリプトは例外で落ちます。
-          そして<strong>終了コード 2 以外の非ゼロは「hook自身のエラー」として無視されます。</strong>
-          差し戻しの合図が終了コード 2 だけなので、それ以外の異常はすべて沈黙になります。</p>
-
-          <p>画面には何も出ません。設定されていて、毎回起動していて、毎回落ちていて、一度も検証していない
-          ── この状態が何日も続きます。対策は1行です（標準入力をバイト列で読み、明示的にUTF-8でデコードする）。
-          <strong>問題は、対策の難しさではなく、壊れていることに気づけないことです。</strong></p>
-
-          <div className={`${styles.callout} ${styles.warn}`}>
-            <span className={styles.title}>導入したら、必ず「わざと違反して、鳴ること」を確認してください。</span>
-            書いた直後に1回だけです。これをやらないと<strong>「動いているつもりで動いていない hook」</strong>が手元に積み上がります。
-            ゲートがあると思って安心している状態は、ゲートがないと分かっている状態より危険です。
-          </div>
-
-          <p>6章では、これとまったく同じ失敗が<strong>効果測定の側でも起きていた</strong>ことに触れます。</p>
-        </section>
-
-        {/* ===================== 6 ===================== */}
-        <section id="s6">
-          <h2><span className={styles.num}>6</span>効果は測れているのか</h2>
-
-          <p>結論から言えば、<strong>量的には「悪化していない」としか言えず、質的には「指摘の中身が変わった」と言える</strong>、という状態です。</p>
-
-          <h3>量：数値では言い切れない</h3>
-
-          <p>会話ログから<strong>修正指摘率</strong>（＝AIの出力に対してユーザーが訂正・やり直しを入れた割合）を
-          週次で自動集計しています。ルール運用開始後の約2か月は <strong>2.3% → 2.0〜2.1%</strong> で横ばいでした。
-          少なくとも、指標が跳ねたら「ルールが形骸化した」と気づける状態にはなっています。</p>
-
-          <div className={`${styles.callout} ${styles.warn}`}>
-            <span className={styles.title}>ただし、導入前後の比較はできていません</span>
-            ルールの運用開始と、集計ロジックの改修（誤検知の除外）が<strong>ほぼ同時期だった</strong>ためです。
-            測定の物差しを、測りたい変化と同じ時期に変えてしまうと、その前後は永久に繋がりません。
-          </div>
-
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>さらに、計測そのものが黙って壊れていました</span>
-            ある時期、2週続けて「前回比：同等」と出ていましたが、実際は<strong>新規データがほとんど入っていませんでした。</strong>
-            収集対象が1プロジェクトに固定されており、主戦場が別リポジトリに移った時点でログを拾えなくなっていたためです。
-            <p style={{ margin: "8px 0 0" }}><strong>「同等」という無害な表示で、壊れていることが2週間隠れていた。</strong>
-            5章の「動いているつもりで動いていない hook」と、まったく同じ失敗です。
-            <strong>hook も計測も、「沈黙」と「正常」が区別できない形にしてはいけない</strong>ということに尽きます。</p>
-          </div>
-
-          <h3>質：指摘の「中身」は入れ替わった</h3>
-
-          <p>一方、実際に受けた修正指摘を蓄積した事例集（4章で触れた記録の副産物です）を運用前後で読み比べると、
-          <strong>指摘の種類そのものが入れ替わっています。</strong></p>
-
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "24%" }}>指摘の種類</th><th style={{ width: "40%" }}>運用開始前によくあったもの</th><th>現在</th></tr>
-            <tr><td><strong>文字コード</strong></td><td>「文字化けしてるので、確認して直して」</td><td rowSpan={4} style={{ color: "var(--good)", fontWeight: 600, verticalAlign: "middle" }}>ほぼ消滅<br /><span style={{ fontWeight: 400, color: "var(--sub)", fontSize: "13px" }}>（いずれも hook を書いた項目）</span></td></tr>
-            <tr><td><strong>動作確認</strong></td><td>「エラーが出てるので確認して修正して」</td></tr>
-            <tr><td><strong>ドキュメント同期</strong></td><td>「とりあえずREADMEは修正して」「一応仕様書も直して」</td></tr>
-            <tr><td><strong>対象範囲</strong></td><td>「その2項目は残してください（消さないで）」</td></tr>
-            <tr><td><strong>残っているもの</strong></td><td colSpan={2}>「この条件を追加して、本来の仕様に合わせて」「データフロー図に、この経路が載っていない」
-              ── <strong>仕様の解釈と設計判断</strong></td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.key}`}>
-            <span className={styles.title}>消えた指摘は、そのまま hook を書いた項目と一致しています。</span>
-            そして残ったのは、<strong>人間が判断するしかないことだけ</strong>です。
-            手順の抜けを指摘するのに使っていた時間が、仕様の詰めに向くようになった
-            ── <strong>これが、数値には出ていない実際の変化です。</strong>
-          </div>
-
-          <div className={`${styles.callout} ${styles.warn}`}>
-            <span className={styles.title}>ただし、これは主観的な分類です</span>
-            事例集を筆者が読んで分類したもので、統計的な検証ではありません。件数の減少幅（運用前33件／運用後10件）も、
-            収集の網羅性が落ちている可能性があるため根拠にしていません。
-            <strong>「指摘の構成比が変わった」という定性的な観察</strong>として受け取ってください。
-          </div>
-        </section>
-
-        {/* ===================== 7 ===================== */}
-        <section id="s7">
-          <h2><span className={styles.num}>7</span>導入コストと落とし穴</h2>
-
-          <h3>やってはいけない導入の仕方</h3>
-
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>❌ いきなり全部入れる</span>
-            ルール20個＋hook 10本を一度に入れると、誤検知と通知の洪水で3日で外すことになります。
-          </div>
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>❌ 人の設定をそのままコピーする</span>
-            関係のないルールが混ざった規範は、全体の信頼度を下げます（4章）。
-          </div>
-          <div className={`${styles.callout} ${styles.bad}`}>
-            <span className={styles.title}>❌ 最初からブロックする</span>
-            信頼を失った hook は二度と使われません（5章）。
-          </div>
-
-          <h3>薦める始め方</h3>
-          <div className={styles.card}>
-            <ol style={{ marginBottom: "0" }}>
-              <li><strong>自分が繰り返し指摘していることを1つ思い出す</strong><br />
-                <span style={{ color: "var(--sub)", fontSize: "13.5px" }}>（例：「テストしてから報告して」を今週3回言った）</span></li>
-              <li><strong>それをルールとして CLAUDE.md に1行書く</strong></li>
-              <li><strong>それを検証する hook を1本だけ書く（通知のみ）</strong></li>
-              <li><strong>1〜2週間使い、鳴りすぎなら条件を絞る。効いていれば次の1本へ</strong></li>
-            </ol>
-          </div>
-          <div className={`${styles.callout} ${styles.good}`}><strong>1ルール1hookずつ。これだけです。</strong></div>
-
-          <h3>継続コスト（正直なところ）</h3>
-          <div className={styles["table-wrap"]}>
-          <table className={styles.bordered}><tbody>
-            <tr><th style={{ width: "40%" }}>項目</th><th>実感</th></tr>
-            <tr><td>hook 1本の作成</td><td>30分〜1時間</td></tr>
-            <tr><td>誤検知の調整</td><td>導入後2週間ほど、たまに発生</td></tr>
-            <tr><td>ルールの見直し</td><td>月1回、10分程度</td></tr>
-            <tr><td><strong>放置したときの劣化</strong></td><td style={{ color: "var(--bad)" }}><strong>半年で「動かない設定」になる</strong></td></tr>
-          </tbody></table>
-          </div>
-
-          <div className={`${styles.callout} ${styles.warn}`}>
-            最後が最大のリスクです。<strong>使い続けている人がいて初めて維持されます。</strong>
-            チームで共有する場合、誰が面倒を見るかを先に決める必要があります。
-            6章の計測の件が示すとおり、<strong>壊れても静かに壊れる</strong>のがこの手の仕組みの性質です。
-          </div>
-        </section>
-
-        <footer>
-          2026-09-17<br />
-          記載の運用は個人環境での実践に基づく個人の見解であり、特定の基準・標準を示すものではありません。
-          <p style={{ marginTop: "12px" }}><Link href="/knowledges/" style={{ color: "var(--accent)", textDecoration: "none" }}>&larr; Knowledges に戻る</Link></p>
-        </footer>
-
-      </div>
-    </div>
+        <h3>継続コスト（正直なところ）</h3>
+        <Grid min="10rem">
+          <Card>
+            <Stat value="30〜60分" label="hook 1本の作成" />
+          </Card>
+          <Card>
+            <Stat value="約2週間" label="誤検知の調整（導入後、たまに）" />
+          </Card>
+          <Card>
+            <Stat value="月1回10分" label="ルールの見直し" />
+          </Card>
+          <Card tone="bad">
+            <Stat value="半年" label="放置すると「動かない設定」になる" />
+          </Card>
+        </Grid>
+        <Note tone="warn" title="最後が最大のリスク">
+          <p>使い続けている人がいて初めて維持されます。チームで共有するなら、誰が面倒を見るかを先に決める。壊れても静かに壊れるのが、この手の仕組みの性質です。</p>
+        </Note>
+      </Sheet>
+    </ArticleLayout>
   );
 }
