@@ -25,6 +25,12 @@ const ARTICLES: Article[] = [
     title: "AIに引き算の美学を持たせる",
     desc: "「もっと短く」と毎回言わないための設計。生まれる量を先に絞る3つの仕組み。",
   },
+  {
+    href: "/knowledges/ai-night-shift-routines/",
+    tags: ["Claude Code", "GitHub", "自動化"],
+    title: "夜間・休日の自動作業",
+    desc: "夕方にIssueを書き、朝にPRをマージする ── クラウドの定期実行で寝ている間にPRまで進める。",
+  },
 ];
 
 // 貼り紙の紙色と傾き。SSRとクライアントで描画結果がずれないよう乱数ではなく固定テーブルで与える

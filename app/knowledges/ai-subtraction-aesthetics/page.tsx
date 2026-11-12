@@ -41,7 +41,7 @@ export default function Page() {
       date="2026-09-18 公開 ／ 2026-11-11 改訂"
       toc={TOC}
       disclaimer="記載の内容は個人環境での実践に基づく個人の見解であり、特定の基準・標準を示すものではありません。掲載している会話ログの抜粋と Before / After は、固有の名称を伏せたうえで掲載しています。"
-      next={{ href: "/knowledges/ai-discipline-with-gates/", title: "AIに規律を守らせる仕組み" }}
+      next={{ href: "/knowledges/ai-night-shift-routines/", title: "夜間・休日の自動作業" }}
     >
       {/* ===================== 結論 ===================== */}
       <Sheet id="s0" no="結論" title="生まれる量を、先に絞る">

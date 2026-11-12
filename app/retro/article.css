@@ -928,3 +928,66 @@
     }
   }
 }
+
+/* コピーボタンつきコードブロックと、短い語を並べるチップ */
+@layer components {
+  .art-copy {
+    margin: 0.6rem 0 1rem;
+  }
+
+  .art-copy-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem 0.4rem 1rem;
+    background: var(--ink-brown);
+    color: #e9dcc4;
+    font-family: var(--font-pixel);
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+  }
+
+  .art-copy-bar button {
+    padding: 0.3rem 0.8rem;
+    background: #ffee7a;
+    border: 2px solid #c8a920;
+    box-shadow: 2px 2px 0 #000;
+    color: var(--ink-brown);
+    font-family: var(--font-dot);
+    font-size: 0.8125rem;
+    letter-spacing: 0;
+    cursor: pointer;
+  }
+
+  .art-copy-bar button:hover {
+    background: #fff6b0;
+  }
+
+  .art-copy-bar button:focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 2px;
+  }
+
+  .art-copy .art-code {
+    margin: 0;
+  }
+
+  .art-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.4rem 0 0.6rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .art-chips li {
+    padding: 0.05rem 0.6rem;
+    background: #fff;
+    border: 2px solid var(--red);
+    color: var(--red-dark);
+    font-size: 0.8125rem;
+  }
+}
