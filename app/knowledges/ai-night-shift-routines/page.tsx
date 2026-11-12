@@ -1,6 +1,6 @@
 ﻿import ArticleLayout from "@/components/article/ArticleLayout";
 import CopyCode from "@/components/article/CopyCode";
-import { Card, Dots, Flow, Grid, Note, Quote, Sheet, Steps, Versus } from "@/components/article/parts";
+import { Card, Code, Dots, Flow, Grid, Note, Quote, Sheet, Steps, Versus } from "@/components/article/parts";
 
 export const metadata = {
   title: "夜間・休日の自動作業",
@@ -15,7 +15,15 @@ const TOC = [
   { id: "s5", no: "5", label: "運用のコツ" },
   { id: "s6", no: "6", label: "依頼文サンプル" },
   { id: "s7", no: "7", label: "注意点" },
+  { id: "s8", no: "補足", label: "使用量で止められるか" },
 ];
+
+const USAGE_CMD = `claude -p "ok" --output-format stream-json --verbose --max-turns 1 | grep rate_limit_event`;
+
+const USAGE_SAMPLE = `"unifiedWindows": {
+  "five_hour": { "utilization": 0.36, "resetsAt": 1794461400, "status": "allowed" },
+  "seven_day": { "utilization": 0.25, "resetsAt": 1794826800, "status": "allowed" }
+}`;
 
 const PROMPT = `GitHub Issue を夜間・休日に自動で対応するルーティンを /schedule で作って。
 毎時30分に実行、対象はこのリポジトリだけ。
@@ -34,7 +42,7 @@ export default function Page() {
       no={3}
       title="夜間・休日の自動作業"
       lead="クラウドの定期実行 × GitHub で、寝ている間にPRまで進める"
-      badges={["結論だけなら1分", "全文の読了目安 約8分", "対象：Claude Code と GitHub を使っている人", "前提知識：Issue・PR・ラベル"]}
+      badges={["結論だけなら1分", "全文の読了目安 約10分", "対象：Claude Code と GitHub を使っている人", "前提知識：Issue・PR・ラベル"]}
       date="2026-11-12 公開"
       toc={TOC}
       disclaimer="記載の内容は個人環境での試行前の設計に基づく個人の見解です。Routines は research preview のため、仕様や制約は変わる可能性があります。"
@@ -275,6 +283,43 @@ export default function Page() {
           </Card>
         </Grid>
         <p className="art-small">Routinesは research preview です。実行間隔の下限などの制約は2026-10-16時点の公式ドキュメントに基づき、変わる可能性があります。</p>
+      </Sheet>
+
+      {/* ===================== 補足 ===================== */}
+      <Sheet id="s8" no="補足" title="使用量80%などで途中停止できるか">
+        <Card tone="key" tag="Q">
+          <p>5時間制限や週次制限に引っ掛からないよう、使用量80%などで途中停止できますか？</p>
+        </Card>
+        <p><b>実行中のルーティンが自分の使用率を読む方法は、公式ドキュメントでは見当たりません。</b>ただし、クラウドの実行環境（Claude Code on the web）で実地に試したところ、非公開の情報ではありますが使用率を読み取れました。</p>
+
+        <h3>使用率の読み取り方（検証結果）</h3>
+        <p>Claude Code の CLI を非対話モードで呼び、出力形式を <code>stream-json</code> にすると、出力に <code>rate_limit_event</code> というイベントが含まれます。ここに5時間枠と週次枠それぞれの使用率とリセット時刻が入っています。</p>
+        <Code>{USAGE_CMD}</Code>
+        <p className="art-small">出力例（抜粋）</p>
+        <Code>{USAGE_SAMPLE}</Code>
+        <Grid min="14rem">
+          <Card title={<code>utilization</code>}>
+            <p>0〜1の使用率。0.36 なら36%。</p>
+          </Card>
+          <Card title={<code>resetsAt</code>}>
+            <p>リセット時刻（UNIX秒）。</p>
+          </Card>
+        </Grid>
+
+        <h3>ルーティンのプロンプトに書く例</h3>
+        <Quote>各Issueに着手する前に上記コマンドを実行し、five_hour か seven_day の utilization が 0.8 以上なら、作業を始めずに終了すること。値が取れなかった場合も終了すること。</Quote>
+
+        <Note tone="warn" title="注意点">
+          <ul>
+            <li><code>rate_limit_event</code> は公式ドキュメントにない内部向けの出力です。CLIの更新で名前や形式が変わったり、出なくなったりする可能性があるため、<b>値が取れないときは「止める」側に倒します</b>。</li>
+            <li>確認のためにCLIを1回動かすので、ごく少量ですが使用量を消費します。</li>
+            <li>取れるのは確認した時点の値です。処理の途中で80%を超えても自動では止まらないので、<b>1件ごとに確認し直します</b>。</li>
+            <li>検証は手動で起動したクラウドのセッションで行いました。ルーティンから起動されたセッションも実行環境は同じなので同様に動くと考えていますが、<b>ルーティンでの動作はまだ確かめていません</b>。</li>
+          </ul>
+        </Note>
+        <Note tone="good" title="非公開の情報に頼りたくない場合">
+          <p>実行時間帯と間隔を絞って一晩の上限を「回数 × 1件」で決める、Issueを小さく切って1回の作業量を抑える、といった回数側での調整が確実です。上限に達して止まっても、mainは保護されており、作業中のまま残ったIssueは「6時間停滞で failed」の決まりで回収されます。</p>
+        </Note>
       </Sheet>
     </ArticleLayout>
   );
