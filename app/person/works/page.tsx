@@ -16,7 +16,9 @@ const TILTS = [-1.6, 0.8, -0.6, 1.4, -1.0, 1.9, -0.9, 0.5, -1.7]; // deg
 const SHIFTS = [0.3, -0.4, 0.5, -0.2, 0.4, -0.5, 0.2, 0.5, -0.3]; // rem
 
 // 付箋を貼る機体（WORKSの並び順で指定）
-const NOTE_INDEX = 7;
+// 付箋は機体の上端からはみ出すため、上段の機体（z-indexが高い）に隠れないよう、
+// 列数に関係なく最上段かつ最前面になる先頭の機体に貼る
+const NOTE_INDEX = 0;
 
 export default function PersonWorksPage() {
   return (
