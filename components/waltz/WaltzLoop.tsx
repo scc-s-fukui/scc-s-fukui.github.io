@@ -37,6 +37,9 @@ const INSTRUMENTS: { value: Instrument; label: string }[] = [
   { value: "piano", label: "ピアノ" },
   { value: "flute", label: "フルート" },
   { value: "musicbox", label: "オルゴール" },
+  { value: "xylo", label: "木琴" },
+  { value: "glock", label: "鉄琴" },
+  { value: "glockHigh", label: "鉄琴（高）" },
   { value: "harp", label: "ハープ" },
 ];
 const SLOTS: { value: TimeSlot | "auto"; label: string }[] = [

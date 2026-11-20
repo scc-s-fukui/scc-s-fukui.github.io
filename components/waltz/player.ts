@@ -5,7 +5,7 @@
 
 export type Mood = "calm" | "bright" | "tender" | "nostalgic";
 export type TimeSlot = "morning" | "day" | "evening" | "night";
-export type Instrument = "piano" | "flute" | "musicbox" | "harp";
+export type Instrument = "piano" | "flute" | "musicbox" | "xylo" | "glock" | "glockHigh" | "harp";
 export type ProgressionMode = "standard" | "canon";
 
 export type Direction = {

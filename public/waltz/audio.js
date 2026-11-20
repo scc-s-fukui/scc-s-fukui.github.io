@@ -4,6 +4,22 @@
 // harmonics: 倍音の強さ（先頭は使わない）/ attack: 立ち上がり(秒) / gain: 音量
 // 減衰型: tau = 減衰の時定数(秒)
 // 持続型（sustain）: release = 音が終わってから消えるまで(秒)。vibrato と breath（息の音）を持てる
+// 木琴・鉄琴の共通の音色: 金属板（や木の板）は整数倍でない部分音を持つので、基音に非整数倍のサイン波を重ねる。
+// partials: ratio = 基音に対する周波数比 / level = 基音に対する強さ / decay = 基音に対する減衰の速さ（小さいほど早く消える）
+// click: 打鍵の瞬間のごく短いノイズの強さ / transpose: この音色だけ音の高さをずらす（半音単位）
+const MALLET = {
+  harmonics: [0, 1],
+  attack: 0.002,
+  tau: 0.45,
+  gain: 0.5,
+  detunes: [0],
+  partials: [
+    { ratio: 2.76, level: 0.3, decay: 0.35 },
+    { ratio: 5.4, level: 0.12, decay: 0.15 },
+  ],
+  click: 0.1,
+};
+
 const VOICES = {
   // 伴奏
   bass: { harmonics: [0, 1, 0.38, 0.12], attack: 0.015, tau: 0.55, gain: 0.55 },
@@ -13,6 +29,10 @@ const VOICES = {
   piano: { harmonics: [0, 1, 0.42, 0.18, 0.08, 0.04], attack: 0.01, tau: 0.5, gain: 0.5, detunes: [0, 4] },
   harpLead: { harmonics: [0, 1, 0.3, 0.1, 0.04], attack: 0.006, tau: 0.45, gain: 0.63, detunes: [0] },
   musicbox: { harmonics: [0, 1, 0, 0.5, 0, 0.28, 0, 0.12], attack: 0.003, tau: 0.32, gain: 0.62, detunes: [0] },
+  // 叩く系の3種は同じ音色で、音の高さのずらし方だけが違う（transpose = 半音の数）
+  xylo: { ...MALLET, transpose: 0 },
+  glock: { ...MALLET, transpose: 12 },
+  glockHigh: { ...MALLET, transpose: 24 },
   flute: {
     harmonics: [0, 1, 0.2, 0.06, 0.02],
     attack: 0.07,
@@ -26,7 +46,7 @@ const VOICES = {
 };
 
 // 画面の選択肢 → 主旋律に使う音色
-export const MELODY_INSTRUMENTS = { piano: 'piano', flute: 'flute', musicbox: 'musicbox', harp: 'harpLead' };
+export const MELODY_INSTRUMENTS = { piano: 'piano', flute: 'flute', musicbox: 'musicbox', xylo: 'xylo', glock: 'glock', glockHigh: 'glockHigh', harp: 'harpLead' };
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
@@ -60,7 +80,6 @@ export function createAudio() {
   }
   const noise = makeNoise(ctx);
   let melodyInstrument = 'piano';
-
   // 声部 → bus → (直接音 + 残響) → 高域を丸めるフィルタ → コンプレッサ → 音量 → 出力
   const bus = ctx.createGain();
   const dry = ctx.createGain();
@@ -120,16 +139,41 @@ export function createAudio() {
     };
   }
 
+  // 打鍵の「コツ」という瞬間的な音。高域の細いノイズを一瞬だけ鳴らす
+  function playClick(time, vel, level) {
+    const source = ctx.createBufferSource();
+    source.buffer = noise;
+    const band = ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.value = 3500;
+    band.Q.value = 1;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(vel * level, time);
+    gain.gain.setTargetAtTime(0, time, 0.01);
+    source.connect(band);
+    band.connect(gain);
+    gain.connect(bus);
+    source.start(time, Math.random() * 0.5);
+    source.stop(time + 0.08);
+    source.onended = () => {
+      source.disconnect();
+      band.disconnect();
+      gain.disconnect();
+    };
+  }
+
   function play({ time, midi, dur, vel, voice }) {
     const name = voice === 'melody' ? MELODY_INSTRUMENTS[melodyInstrument] : voice;
     const v = VOICES[name];
-    const freq = 440 * 2 ** ((midi - 69) / 12);
+    const sounding = midi + (v.transpose ?? 0);
+    const freq = 440 * 2 ** ((sounding - 69) / 12);
     const peak = vel * v.gain;
 
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, time);
     gain.gain.linearRampToValueAtTime(peak, time + v.attack);
     let end;
+    let tau = 0;
     if (v.sustain) {
       // 持続型: 音の長さの間は鳴らし続け、終わったらふわっと消す
       const hold = Math.max(dur, v.attack + 0.05);
@@ -138,8 +182,8 @@ export function createAudio() {
       end = time + hold + v.release * 2;
     } else {
       // 減衰型: 高い音ほど早く消える
-      const pitchFactor = clamp(1.25 - (midi - 48) / 48, 0.45, 1.2);
-      const tau = v.tau * pitchFactor * (0.75 + 0.25 * Math.min(dur, 3));
+      const pitchFactor = clamp(1.25 - (sounding - 48) / 48, 0.45, 1.2);
+      tau = v.tau * pitchFactor * (0.75 + 0.25 * Math.min(dur, 3));
       gain.gain.setTargetAtTime(0, time + v.attack, tau);
       end = time + v.attack + tau * 7;
     }
@@ -180,7 +224,20 @@ export function createAudio() {
         start(lfo);
       }
     }
+    for (const p of v.partials ?? []) {
+      // 非整数倍の部分音は、基音より早く消える（金属板の「キン」と鳴ってすぐ澄む感じ）
+      const partialGain = ctx.createGain();
+      partialGain.gain.setValueAtTime(p.level, time);
+      partialGain.gain.setTargetAtTime(0, time + v.attack, tau * p.decay);
+      partialGain.connect(gain);
+      nodes.push(partialGain);
+      const osc = ctx.createOscillator();
+      osc.frequency.setValueAtTime(freq * p.ratio, time);
+      osc.connect(partialGain);
+      start(osc);
+    }
     if (v.breath) playBreath(time, freq, vel, v.breath);
+    if (v.click) playClick(time, vel, v.click);
   }
 
   return {
