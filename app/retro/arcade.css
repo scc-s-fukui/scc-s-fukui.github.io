@@ -417,6 +417,197 @@
     color: #b9b6ee;
   }
 
+  /* 遊べるカートリッジ（リンク）：ラベルが明るく光る */
+  a.cartridge {
+    display: block;
+    text-decoration: none;
+  }
+
+  a.cartridge .cartridge-label {
+    background: repeating-linear-gradient(45deg, #3a1d5e 0 6px, #2f1650 6px 12px);
+    color: var(--arc-yellow);
+    box-shadow:
+      inset 0 0 0 2px var(--arc-pink),
+      0 0 14px rgb(255 61 203 / 0.45);
+  }
+
+  a.cartridge .cartridge-label b {
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  a.cartridge:focus-visible {
+    outline: 3px solid var(--arc-cyan);
+    outline-offset: 4px;
+  }
+
+  /* ---- エンドレス・ワルツ（演奏パネル） ---- */
+  .waltz {
+    padding: 1.5rem;
+    border: 4px solid #fff;
+    border-radius: 0.5rem;
+    background: linear-gradient(#1a2a8a, #0a1450);
+    box-shadow:
+      0 0 0 3px #1a1d4a,
+      0 12px 24px rgb(0 0 0 / 0.5);
+    color: #fff;
+  }
+
+  .waltz-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.5rem 0 1.5rem;
+  }
+
+  .waltz-orb {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffd2f3, var(--arc-pink) 55%, #5a1a80);
+    box-shadow:
+      0 0 0 4px #0a0720,
+      0 0 24px rgb(255 61 203 / 0.45);
+    opacity: 0.55;
+    transition: opacity 0.3s;
+  }
+
+  .waltz-orb.is-playing {
+    opacity: 1;
+  }
+
+  .waltz-play {
+    min-width: 11rem;
+    min-height: 3rem;
+    padding: 0 1.5rem;
+    border: 3px solid #fff;
+    background: #000;
+    box-shadow: 0 0 0 3px #1a1d4a;
+    font-family: var(--font-pixel);
+    font-size: 0.75rem;
+    color: var(--arc-yellow);
+    cursor: pointer;
+  }
+
+  .waltz-play:hover:not(:disabled) {
+    color: var(--arc-cyan);
+  }
+
+  .waltz-play:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .waltz-play:focus-visible,
+  .waltz select:focus-visible,
+  .waltz input:focus-visible {
+    outline: 3px solid var(--arc-cyan);
+    outline-offset: 2px;
+  }
+
+  .waltz-error {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #ff9db0;
+  }
+
+  .waltz-now {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.9rem 1rem;
+    border: 3px solid #fff;
+    background: #000;
+  }
+
+  .waltz-now dt {
+    font-family: var(--font-pixel);
+    font-size: 0.5rem;
+    color: var(--arc-cyan);
+  }
+
+  .waltz-now dd {
+    margin: 0.25rem 0 0;
+    line-height: 1.5;
+  }
+
+  .waltz-now .waltz-chord {
+    font-size: 1.5rem;
+    color: var(--arc-yellow);
+  }
+
+  .waltz-motifs {
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.8;
+    color: #d6d9ff;
+  }
+
+  .waltz-controls {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 2px dashed rgb(255 255 255 / 0.35);
+  }
+
+  .waltz-controls label {
+    display: grid;
+    grid-template-columns: 8em 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    font-size: 0.9rem;
+  }
+
+  .waltz-controls select {
+    min-height: 2.5rem;
+    padding: 0 0.5rem;
+    border: 2px solid #fff;
+    border-radius: 0.25rem;
+    background: #0a0720;
+    color: #fff;
+    font: inherit;
+  }
+
+  .waltz-controls input[type="range"] {
+    width: 100%;
+    accent-color: var(--arc-pink);
+  }
+
+  .waltz-controls input[type="checkbox"] {
+    accent-color: var(--arc-pink);
+  }
+
+  .waltz-range-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .waltz-range-row output {
+    min-width: 3.2em;
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--arc-yellow);
+  }
+
+  .waltz-hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: #b9bdf0;
+  }
+
+  @media (max-width: 30rem) {
+    .waltz-controls label {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+      padding: 0.3rem 0;
+    }
+  }
+
   /* ---- フッター：コンティニュー画面 ---- */
   .ftr-arcade {
     margin-top: 3rem;
@@ -466,7 +657,8 @@
     }
 
     .cartridge,
-    .cab-stick-lever {
+    .cab-stick-lever,
+    .waltz-orb {
       transition: none;
     }
   }

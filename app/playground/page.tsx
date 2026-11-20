@@ -1,4 +1,5 @@
 ﻿import type { CSSProperties } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LakesideDayScene from "@/components/LakesideDayScene";
@@ -6,7 +7,7 @@ import LakesideDayScene from "@/components/LakesideDayScene";
 const NAV_ITEMS = [{ href: "/playground/", label: "一覧" }];
 
 // まだ遊べないステージ（準備中の実験枠）
-const LOCKED_STAGES = ["1-2", "1-3", "1-4"];
+const LOCKED_STAGES = ["1-3", "1-4"];
 
 const BUTTONS = ["#e5384f", "#ffd23f", "#3a8dff"];
 
@@ -68,7 +69,7 @@ export default function PlaygroundPage() {
 
           <div className="rpg-window mx-auto max-w-copy">
             <span className="rpg-name">S.FUKUI</span>
-            <p>技術検証や実験的な取り組みを置いていく予定です。準備中。</p>
+            <p>技術検証や実験的な取り組みを置いていきます。ステージ1-2は、遊べます。</p>
             <p>お城をクリック（タップ）すると……？</p>
             <span className="rpg-cursor blink" aria-hidden="true">
               ▼
@@ -79,6 +80,13 @@ export default function PlaygroundPage() {
         <section className="mx-auto max-w-content px-6 pb-4">
           <h2 className="stage-heading">― STAGE SELECT ―</h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-6">
+            <Link href="/playground/waltz-loop/" className="cartridge" aria-label="STAGE 1-2 エンドレス・ワルツ">
+              <div className="cartridge-label">
+                STAGE 1-2
+                <b>WALTZ</b>
+                PLAY ▶
+              </div>
+            </Link>
             {LOCKED_STAGES.map((stage) => (
               <div className="cartridge" key={stage} aria-label={`STAGE ${stage} 準備中`}>
                 <div className="cartridge-label">
