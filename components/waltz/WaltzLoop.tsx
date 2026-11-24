@@ -194,201 +194,226 @@ export default function WaltzLoop() {
 
   return (
     <div className="waltz">
-      <div className="waltz-stage">
-        <div ref={orbRef} className={`waltz-orb ${playing ? "is-playing" : ""}`} aria-hidden="true" />
-        <button type="button" className="waltz-play" onClick={toggle} disabled={status === "loading"}>
-          {status === "loading" ? "LOADING…" : playing ? "■ STOP" : "▶ PLAY"}
-        </button>
-        {status === "error" && (
-          <p className="waltz-error" role="alert">
-            再生を始められませんでした。ページを読み込み直してから、もう一度お試しください。
-          </p>
-        )}
+      <div className="waltz-side">
+        <div className="waltz-stage">
+          <div ref={orbRef} className={`waltz-orb ${playing ? "is-playing" : ""}`} aria-hidden="true" />
+          <div className="waltz-transport">
+            <button type="button" className="waltz-play" onClick={toggle} disabled={status === "loading"}>
+              {status === "loading" ? "LOADING…" : playing ? "■ STOP" : "▶ PLAY"}
+            </button>
+            <span className="waltz-mini" aria-hidden="true">
+              {bar ? `${bar.chordName}　♩=${bar.tempo}` : ""}
+            </span>
+          </div>
+          {status === "error" && (
+            <p className="waltz-error" role="alert">
+              再生を始められませんでした。ページを読み込み直してから、もう一度お試しください。
+            </p>
+          )}
+        </div>
+
+        <dl className="waltz-now" aria-live="off">
+          <div>
+            <dt>CHORD</dt>
+            <dd className="waltz-chord">{bar?.chordName ?? "―"}</dd>
+          </div>
+          <div>
+            <dt>KEY</dt>
+            <dd>{bar ? `${bar.key} ${bar.mode === "major" ? "長調" : "短調"}` : "―"}</dd>
+          </div>
+          <div>
+            <dt>MOOD</dt>
+            <dd>{bar ? MOOD_LABEL[bar.mood] : "―"}</dd>
+          </div>
+          <div>
+            <dt>TEMPO</dt>
+            <dd>{bar ? `♩=${bar.tempo}` : "―"}</dd>
+          </div>
+          <div>
+            <dt>BAR</dt>
+            <dd>{bar ? `${bar.barInPeriod + 1} / 16` : "―"}</dd>
+          </div>
+        </dl>
+        <p className="waltz-motifs">
+          {motifs
+            ? `断片: ${motifs.a} → ${motifs.b}　原曲の面影 ${Math.round(motifs.familiarity * 100)}%`
+            : "再生を押すと、旋律の断片から新しいワルツが16小節ずつ生まれます。"}
+        </p>
       </div>
 
-      <dl className="waltz-now" aria-live="off">
-        <div>
-          <dt>CHORD</dt>
-          <dd className="waltz-chord">{bar?.chordName ?? "―"}</dd>
-        </div>
-        <div>
-          <dt>KEY</dt>
-          <dd>{bar ? `${bar.key} ${bar.mode === "major" ? "長調" : "短調"}` : "―"}</dd>
-        </div>
-        <div>
-          <dt>MOOD</dt>
-          <dd>{bar ? MOOD_LABEL[bar.mood] : "―"}</dd>
-        </div>
-        <div>
-          <dt>TEMPO</dt>
-          <dd>{bar ? `♩=${bar.tempo}` : "―"}</dd>
-        </div>
-        <div>
-          <dt>BAR</dt>
-          <dd>{bar ? `${bar.barInPeriod + 1} / 16` : "―"}</dd>
-        </div>
-      </dl>
-      <p className="waltz-motifs">
-        {motifs
-          ? `断片: ${motifs.a} → ${motifs.b}　原曲の面影 ${Math.round(motifs.familiarity * 100)}%`
-          : "再生を押すと、旋律の断片から新しいワルツが16小節ずつ生まれます。"}
-      </p>
-
       <div className="waltz-controls">
-        <label>
-          音量
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={settings.volume}
-            onChange={(e) => update("volume", Number(e.target.value))}
-          />
-        </label>
-        <label>
-          主旋律の音量
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={settings.melody}
-            onChange={(e) => update("melody", Number(e.target.value))}
-          />
-        </label>
-        <label>
-          ドラムの音量
-          <span className="waltz-range-row">
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={5}
-              value={settings.drums}
-              onChange={(e) => update("drums", Number(e.target.value))}
-            />
-            <output>{settings.drums === 0 ? "なし" : `${settings.drums}%`}</output>
-          </span>
-        </label>
-        <label>
-          主旋律の楽器
-          <select value={settings.instrument} onChange={(e) => update("instrument", e.target.value as Instrument)}>
-            {INSTRUMENTS.map((i) => (
-              <option key={i.value} value={i.value}>
-                {i.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          テンポ
-          <span className="waltz-range-row">
-            <input
-              type="range"
-              min={TEMPO_RANGE[0]}
-              max={TEMPO_RANGE[1]}
-              value={tempoAuto ? 72 : settings.tempo}
-              disabled={tempoAuto}
-              onChange={(e) => update("tempo", Number(e.target.value))}
-            />
-            <output>{tempoAuto ? "自動" : settings.tempo}</output>
-          </span>
-        </label>
-        <label>
-          テンポの決め方
-          <span>
+        <fieldset className="waltz-group">
+          <legend>音量</legend>
+          <label>
+            全体の音量
+            <span className="waltz-range-row">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={settings.volume}
+                onChange={(e) => update("volume", Number(e.target.value))}
+              />
+              <output>{settings.volume}%</output>
+            </span>
+          </label>
+          <label>
+            主旋律の音量
+            <span className="waltz-range-row">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={settings.melody}
+                onChange={(e) => update("melody", Number(e.target.value))}
+              />
+              <output>{settings.melody}%</output>
+            </span>
+          </label>
+          <label>
+            ドラムの音量
+            <span className="waltz-range-row">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={settings.drums}
+                onChange={(e) => update("drums", Number(e.target.value))}
+              />
+              <output>{settings.drums === 0 ? "なし" : `${settings.drums}%`}</output>
+            </span>
+          </label>
+          <small className="waltz-help">1拍目のバスドラムと、2・3拍目の短く切るブラシで拍を支えます。</small>
+        </fieldset>
+
+        <fieldset className="waltz-group">
+          <legend>
+            演奏<small>すぐ反映</small>
+          </legend>
+          <label>
+            主旋律の楽器
+            <select value={settings.instrument} onChange={(e) => update("instrument", e.target.value as Instrument)}>
+              {INSTRUMENTS.map((i) => (
+                <option key={i.value} value={i.value}>
+                  {i.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            テンポ
+            <span className="waltz-range-row">
+              <input
+                type="range"
+                min={TEMPO_RANGE[0]}
+                max={TEMPO_RANGE[1]}
+                value={tempoAuto ? 72 : settings.tempo}
+                disabled={tempoAuto}
+                onChange={(e) => update("tempo", Number(e.target.value))}
+              />
+              <output>{tempoAuto ? "自動" : `♩=${settings.tempo}`}</output>
+            </span>
+          </label>
+          <label className="waltz-check">
             <input
               type="checkbox"
               checked={tempoAuto}
               onChange={(e) => update("tempo", e.target.checked ? "auto" : (bar?.tempo ?? 72))}
-            />{" "}
+            />
             おまかせ（時間帯に任せる）
-          </span>
-        </label>
-        <label>
-          揺らぎ
-          <span className="waltz-range-row">
-            <input
-              type="range"
-              min={SWAY_RANGE[0]}
-              max={SWAY_RANGE[1]}
-              step={10}
-              value={settings.sway}
-              onChange={(e) => update("sway", Number(e.target.value))}
-            />
-            <output>{settings.sway}%</output>
-          </span>
-        </label>
-        <label>
-          スウィング
-          <span className="waltz-range-row">
-            <input
-              type="range"
-              min={SWING_RANGE[0]}
-              max={SWING_RANGE[1]}
-              step={10}
-              value={settings.swing}
-              onChange={(e) => update("swing", Number(e.target.value))}
-            />
-            <output>{settings.swing}%</output>
-          </span>
-        </label>
-        <label>
-          雰囲気
-          <select value={settings.mood} onChange={(e) => update("mood", e.target.value as WaltzSettings["mood"])}>
-            <option value="auto">おまかせ</option>
-            {(Object.keys(MOOD_LABEL) as Mood[]).map((m) => (
-              <option key={m} value={m}>
-                {MOOD_LABEL[m]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          時間帯
-          <select value={settings.slot} onChange={(e) => update("slot", e.target.value as WaltzSettings["slot"])}>
-            {SLOTS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          原曲の面影
-          <select
-            value={settings.familiarity === "auto" ? "auto" : String(settings.familiarity)}
-            onChange={(e) => update("familiarity", e.target.value === "auto" ? "auto" : Number(e.target.value))}
-          >
-            {FAMILIARITIES.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          進行モード
-          <select value={settings.progression} onChange={(e) => update("progression", e.target.value as ProgressionMode)}>
-            {PROGRESSIONS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          断片のつなぎ方
-          <select value={settings.motifLink} onChange={(e) => update("motifLink", e.target.value as MotifLink)}>
-            {MOTIF_LINKS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <p className="waltz-hint">
-          ドラムは、1拍目のバスドラムと2・3拍目の短く切るブラシで拍を支えます（音量0%でなし）。音量・ドラム・楽器・テンポ・揺らぎ・スウィングは数秒以内に切り替わります。進行モードの長調・短調特化は調の長短だけを固定し、「同じ断片でつなぐ」は前半と後半の旋律を同じ断片にします。雰囲気・時間帯・面影・進行モード・断片のつなぎ方は、次の16小節から反映されます。
-        </p>
+          </label>
+          <label>
+            揺らぎ
+            <span className="waltz-range-row">
+              <input
+                type="range"
+                min={SWAY_RANGE[0]}
+                max={SWAY_RANGE[1]}
+                step={10}
+                value={settings.sway}
+                onChange={(e) => update("sway", Number(e.target.value))}
+              />
+              <output>{settings.sway}%</output>
+            </span>
+          </label>
+          <label>
+            スウィング
+            <span className="waltz-range-row">
+              <input
+                type="range"
+                min={SWING_RANGE[0]}
+                max={SWING_RANGE[1]}
+                step={10}
+                value={settings.swing}
+                onChange={(e) => update("swing", Number(e.target.value))}
+              />
+              <output>{settings.swing}%</output>
+            </span>
+          </label>
+        </fieldset>
+
+        <fieldset className="waltz-group">
+          <legend>
+            曲づくり<small>次の16小節から反映</small>
+          </legend>
+          <label>
+            雰囲気
+            <select value={settings.mood} onChange={(e) => update("mood", e.target.value as WaltzSettings["mood"])}>
+              <option value="auto">おまかせ</option>
+              {(Object.keys(MOOD_LABEL) as Mood[]).map((m) => (
+                <option key={m} value={m}>
+                  {MOOD_LABEL[m]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            時間帯
+            <select value={settings.slot} onChange={(e) => update("slot", e.target.value as WaltzSettings["slot"])}>
+              {SLOTS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            原曲の面影
+            <select
+              value={settings.familiarity === "auto" ? "auto" : String(settings.familiarity)}
+              onChange={(e) => update("familiarity", e.target.value === "auto" ? "auto" : Number(e.target.value))}
+            >
+              {FAMILIARITIES.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            進行モード
+            <select value={settings.progression} onChange={(e) => update("progression", e.target.value as ProgressionMode)}>
+              {PROGRESSIONS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <small className="waltz-help">長調特化・短調特化は、調の長短だけを固定します。</small>
+          <label>
+            断片のつなぎ方
+            <select value={settings.motifLink} onChange={(e) => update("motifLink", e.target.value as MotifLink)}>
+              {MOTIF_LINKS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <small className="waltz-help">「同じ断片でつなぐ」は、前半と後半の旋律を同じ断片にします。</small>
+        </fieldset>
       </div>
     </div>
   );

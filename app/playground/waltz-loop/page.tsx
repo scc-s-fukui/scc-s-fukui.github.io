@@ -32,13 +32,16 @@ export default function WaltzLoopPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-copy px-6 pt-10">
-          <h1 className="stage-heading !mt-0">― ENDLESS WALTZ ―</h1>
-          <p className="mb-6 text-center text-sm leading-loose text-[#d6d9ff]">
+        <section className="mx-auto max-w-content px-4 pt-10 sm:px-6">
+          <h1 className="stage-heading !mt-0">
+            <span aria-hidden="true">― </span>ENDLESS WALTZ<span aria-hidden="true"> ―</span>
+            <small className="mt-2 block font-dot text-base tracking-widest text-ink">エンドレス・ワルツ</small>
+          </h1>
+          <p className="mx-auto mb-6 max-w-copy text-left text-sm leading-loose text-[#d6d9ff] [line-break:strict] [text-wrap:pretty] sm:text-center">
             クラシックの旋律の断片を変形して、途切れなく流し続けるワルツです。音はこのページの中で合成していて、サーバーやAIは使っていません。
           </p>
           <WaltzLoop />
-          <p className="mt-6 text-xs leading-loose text-[#9d9bd0]">
+          <p className="mx-auto mt-6 max-w-copy text-xs leading-loose text-[#b3b1e0]">
             旋律の断片は、著作権の切れた曲に着想を得た自作の骨格です。原曲との照合はしていません。
           </p>
         </section>

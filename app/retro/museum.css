@@ -122,12 +122,28 @@
     color: #cfc4a8;
   }
 
+  /* 日本語の折り返しを文節単位にし、行末に1〜2文字だけ残るのを避ける */
+  .museum-lead,
+  .panel-lead,
+  .about-caption p {
+    line-break: strict;
+    word-break: auto-phrase;
+    text-wrap: pretty;
+  }
+
   .museum-heading {
     margin: 0 0 1.75rem;
+    padding-left: 0.35em; /* 字間の末尾分を相殺して、中央揃えのずれを防ぐ */
     text-align: center;
-    font-size: 0.9375rem;
+    font-size: 1.0625rem;
     letter-spacing: 0.35em;
     color: var(--gold-1);
+  }
+
+  /* キーボード操作時の現在位置を、暗い背景でも見えるようにする */
+  .theme-museum :is(a, button):focus-visible {
+    outline: 3px solid var(--gold-1);
+    outline-offset: 4px;
   }
 
   /* ---- 展示ケース ---- */
@@ -269,9 +285,9 @@
     display: block;
     margin-bottom: 0.25rem;
     font-family: var(--font-pixel);
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
     letter-spacing: 0.15em;
-    color: #6a4e12;
+    color: #3f2d08;
   }
 
   .plaque-title {
@@ -283,7 +299,7 @@
   .plaque-text {
     display: block;
     margin-top: 0.25rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     line-height: 1.6;
   }
 
@@ -291,8 +307,8 @@
     display: block;
     margin-top: 0.5rem;
     text-align: right;
-    font-size: 0.75rem;
-    color: #5a4310;
+    font-size: 0.8125rem;
+    color: #3a2a08;
   }
 
   /* ---- 額縁に入ったデモ画面 ---- */
@@ -354,7 +370,7 @@
     padding: 0.35rem 0.55rem;
     background: rgb(0 0 0 / 0.55);
     font-family: var(--font-pixel);
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
     letter-spacing: 0.12em;
     color: #fff;
     text-shadow: 0 0 6px #6c8cff;
@@ -405,10 +421,13 @@
 
   .panel-no {
     margin: 0 0 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.75em;
     font-family: var(--font-pixel);
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
     letter-spacing: 0.2em;
-    color: #8a6a1e;
+    color: #6a4e12;
   }
 
   .panel-title {
@@ -513,7 +532,53 @@
   }
 
   .ftr-museum .ftr-copy {
-    color: #bba98a;
+    font-size: 0.875rem;
+    color: #d3c3a2;
+    text-shadow: 0 1px 0 #000;
+  }
+
+  /* ---- 狭い画面：枠の内側の余白と展示ケースの高さを詰め、本文の幅と一覧性を確保する ---- */
+  @media (max-width: 47.99rem) {
+    .exhibit-case {
+      height: 11.5rem;
+    }
+
+    .exhibit-pedestal {
+      height: 2.5rem;
+    }
+
+    .exhibit-item {
+      bottom: 2.75rem;
+    }
+
+    .statue-case {
+      height: 12rem;
+    }
+
+    .wall-panel {
+      padding: 1.5rem 1.25rem 1.5rem 1.5rem;
+    }
+
+    .about-caption {
+      padding: 1.25rem 1.25rem;
+    }
+
+    .gallery-frame {
+      padding: 0.6rem;
+    }
+
+    .gallery-mat {
+      padding: 0.5rem;
+    }
+
+    .demo-badge {
+      top: 0.95rem;
+      left: 0.95rem;
+    }
+
+    .museum-eyebrow {
+      letter-spacing: 0.18em;
+    }
   }
 
   .exit-sign {

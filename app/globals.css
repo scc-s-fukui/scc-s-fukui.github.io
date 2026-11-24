@@ -86,6 +86,24 @@ body {
     border-bottom: 1px solid transparent;
   }
 
+  /* 内容が短い画面でもフッターを画面下端に置く（本文を伸ばして、足りない分を埋める） */
+  .theme-museum,
+  .theme-backroom,
+  .theme-board,
+  .theme-arcade {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .theme-museum > main,
+  .theme-backroom > main,
+  .theme-board > main,
+  .theme-arcade > main {
+    flex: 1 0 auto;
+  }
+
   .ftr {
     margin-top: 3rem;
   }

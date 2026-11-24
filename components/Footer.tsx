@@ -28,7 +28,9 @@ export default function Footer({ backHref, backLabel = "Portal に戻る", varia
   // 戻り先のリンクを、世界観に合わせた「もの」として見せる（非常口サイン／立入禁止テープ／管理人札／コンティニュー画面）
   return (
     <footer className={`ftr ftr-${variant}`}>
-      <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-4 px-6 py-8">
+      <div
+        className={`mx-auto flex max-w-content flex-wrap items-center gap-4 px-6 py-8 ${backHref ? "justify-between" : "justify-center"}`}
+      >
         {backHref && variant === "museum" && (
           <Link href={backHref} className="exit-sign">
             <span className="exit-sign-man" aria-hidden="true">

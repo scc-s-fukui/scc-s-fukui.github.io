@@ -28,7 +28,7 @@ export default function ArticleLayout({ no, title, lead, badges, date, toc, disc
       <Header logoLabel="Knowledges" navItems={NAV_ITEMS} variant="board" />
 
       <main>
-        <article className="mx-auto max-w-content px-2 pt-8 pb-4 sm:px-6 sm:pt-14">
+        <article className="mx-auto max-w-content px-2 pt-8 pb-4 md:px-6 md:pt-14">
           <div className="board-frame">
             <div className="cork">
               <header className="poster art-hero">

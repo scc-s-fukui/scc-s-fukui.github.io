@@ -58,10 +58,10 @@ export function Card({
   );
 }
 
-/** カードを並べる。min は1枚の最小幅（狭い画面では自動で折り返す） */
-export function Grid({ min, children }: { min?: string; children: ReactNode }) {
+/** カードを並べる。min は1枚の最小幅（狭い画面では自動で折り返す）。cols を指定すると広い画面で列数を固定する（4枚を2×2にして「3＋1」の孤立を避ける用途） */
+export function Grid({ min, cols, children }: { min?: string; cols?: 2 | 3; children: ReactNode }) {
   return (
-    <div className="art-grid" style={min ? ({ "--min": min } as CSSProperties) : undefined}>
+    <div className="art-grid" data-cols={cols} style={min ? ({ "--min": min } as CSSProperties) : undefined}>
       {children}
     </div>
   );

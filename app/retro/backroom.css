@@ -129,6 +129,9 @@
     max-width: 40rem;
     line-height: 1.9;
     color: #9a96b3;
+    line-break: strict;
+    word-break: auto-phrase;
+    text-wrap: pretty;
   }
 
   /* 立入禁止テープ */
@@ -152,7 +155,7 @@
   }
 
   /* ---- CRTを積み上げた部屋 ----
-     機体サイズは全機同一で、本文が溢れた場合は画面内でスクロールさせる */
+     同じ行の機体は高さを揃え、本文は内容に合わせて伸ばす（実績が増えても欠けない） */
   .crt-room {
     position: relative;
     overflow: hidden;
@@ -212,13 +215,15 @@
   .crt {
     --crt-b1: #ddd6c2;
     --crt-b2: #c2baa3;
-    --crt-bt: #7a7360;
+    --crt-bt: #5f594a;
     --crt-c: #46ff7a;
     --crt-g: rgb(70 255 122 / 0.7);
     --crt-h: #b4ffc9;
     --crt-bg: #0d2a14;
     position: relative;
     z-index: var(--crt-z);
+    display: flex;
+    flex-direction: column;
     margin-bottom: -2px;
     padding: 0.5rem 0.75rem 0.45rem;
     border-radius: 0.75rem 0.75rem 0.5rem 0.5rem;
@@ -228,13 +233,16 @@
       0 -3px 5px rgb(0 0 0 / 0.28) inset,
       0 8px 14px rgb(0 0 0 / 0.55),
       0 0 30px -6px var(--crt-g);
-    transform: translateX(var(--crt-shift)) rotate(var(--crt-tilt));
+    /* 傾きは文字がにじまない程度に抑える */
+    transform: translateX(var(--crt-shift)) rotate(calc(var(--crt-tilt) * 0.55));
     transition: transform 0.2s;
   }
 
-  .crt:hover {
+  /* 操作できる部品ではないので浮かせず、傾きだけ戻して前面に出す */
+  .crt:hover,
+  .crt:focus-within {
     z-index: 50;
-    transform: translate(var(--crt-shift), -0.4rem) rotate(0deg);
+    transform: translateX(var(--crt-shift)) rotate(0deg);
   }
 
   .crt[data-bezel="gray"] {
@@ -272,6 +280,7 @@
 
   .crt-glass {
     position: relative;
+    flex: 1;
     overflow: hidden;
     border-radius: 1rem / 0.8rem;
     background: radial-gradient(ellipse at 50% 45%, var(--crt-bg), #020604 90%);
@@ -292,7 +301,7 @@
   }
 
   .crt-glass::before {
-    background: repeating-linear-gradient(180deg, rgb(0 0 0 / 0.28) 0 1px, transparent 1px 3px);
+    background: repeating-linear-gradient(180deg, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 4px);
   }
 
   .crt-glass::after {
@@ -300,22 +309,19 @@
   }
 
   .crt-content {
-    height: 17rem;
-    overflow-y: auto;
+    min-height: 12rem;
     padding: 0.75rem 0.875rem 0.875rem;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    line-height: 1.65;
+    font-family: var(--font-mono), var(--font-dot);
+    font-size: 0.8125rem;
+    line-height: 1.75;
     color: var(--crt-c);
-    text-shadow: 0 0 5px var(--crt-g);
-    scrollbar-width: thin;
-    scrollbar-color: var(--crt-c) transparent;
+    text-shadow: 0 0 3px var(--crt-g);
   }
 
   .crt-tags {
     margin: 0;
-    font-size: 0.6875rem;
-    opacity: 0.75;
+    font-size: 0.75rem;
+    opacity: 0.9;
   }
 
   .crt-tag {
@@ -327,14 +333,20 @@
     margin: 0.125rem 0 0.35rem;
     padding-bottom: 0.2rem;
     border-bottom: 1px dashed var(--crt-c);
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--crt-h);
+    text-shadow: 0 0 6px var(--crt-g);
   }
 
   .crt-desc {
     margin: 0;
-    white-space: pre-line;
+    line-break: strict;
+    text-wrap: pretty;
+  }
+
+  .crt-desc + .crt-desc {
+    margin-top: 0.5em;
   }
 
   .crt-base {
@@ -382,11 +394,16 @@
   }
 
   .ftr-backroom .ftr-copy {
-    color: #6c6884;
+    color: #8d89a8;
+  }
+
+  .theme-backroom :is(a, button):focus-visible {
+    outline: 3px solid var(--neon-cyan);
+    outline-offset: 4px;
   }
 
   .neon-exit {
-    padding: 0.4rem 1rem;
+    padding: 0.65rem 1.1rem;
     border: 1px solid var(--neon-cyan);
     border-radius: 0.4rem;
     color: #d8fbff;
@@ -402,6 +419,17 @@
     box-shadow:
       0 0 16px rgb(46 233 255 / 0.9),
       inset 0 0 12px rgb(46 233 255 / 0.4);
+  }
+
+  /* 狭い画面：外周の余白を詰めて、本文の幅を確保する */
+  @media (max-width: 39.99rem) {
+    .crt-room {
+      padding-inline: 1rem;
+    }
+
+    .crt-content {
+      font-size: 0.875rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

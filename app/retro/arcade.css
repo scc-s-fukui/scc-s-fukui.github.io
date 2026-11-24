@@ -291,7 +291,6 @@
     transition:
       transform 0.06s,
       box-shadow 0.06s;
-    cursor: pointer;
   }
 
   .cab-btn:active {
@@ -351,6 +350,9 @@
 
   .rpg-window p {
     margin: 0;
+    line-break: strict;
+    word-break: auto-phrase;
+    text-wrap: pretty;
   }
 
   .rpg-cursor {
@@ -394,8 +396,13 @@
     background: repeating-linear-gradient(90deg, #d4a940 0 3px, #2a2a33 3px 6px);
   }
 
-  .cartridge:hover {
+  /* 遊べるカートリッジだけ浮かせる（ロック中は押せないので動かさない） */
+  a.cartridge:hover {
     transform: translateY(-4px);
+  }
+
+  div.cartridge {
+    cursor: not-allowed;
   }
 
   .cartridge-label {
@@ -404,9 +411,9 @@
     background: repeating-linear-gradient(45deg, #26244a 0 6px, #1f1d3d 6px 12px);
     text-align: center;
     font-family: var(--font-pixel);
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
     line-height: 2.2;
-    color: #8f8cc0;
+    color: #a3a0d4;
     box-shadow: inset 0 0 0 2px #4a4780;
   }
 
@@ -444,6 +451,8 @@
 
   /* ---- エンドレス・ワルツ（演奏パネル） ---- */
   .waltz {
+    max-width: 40rem;
+    margin-inline: auto;
     padding: 1.5rem;
     border: 4px solid #fff;
     border-radius: 0.5rem;
@@ -460,6 +469,74 @@
     align-items: center;
     gap: 1.25rem;
     padding: 0.5rem 0 1.5rem;
+  }
+
+  .waltz-transport {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .waltz-mini {
+    display: none;
+  }
+
+  /* 1カラムのあいだは、設定を触っても再生/停止と現在のコード・テンポが見えるよう、操作帯をヘッダーの下に固定する */
+  @media (max-width: 59.99rem) {
+    .waltz-side,
+    .waltz-stage {
+      display: contents;
+    }
+
+    .waltz-orb {
+      width: 6rem;
+      height: 6rem;
+      margin: 0.5rem auto 1.25rem;
+    }
+
+    .waltz-transport {
+      position: sticky;
+      top: 4rem;
+      z-index: 5;
+      margin: 0 -0.5rem 1rem;
+      padding: 0.6rem 0.5rem;
+      background: #0a1450;
+      border-block: 2px solid rgb(255 255 255 / 0.35);
+    }
+
+    .waltz-mini {
+      display: block;
+      min-width: 0;
+      font-size: 0.875rem;
+      color: var(--arc-yellow);
+    }
+
+    .waltz-error {
+      margin-bottom: 1rem;
+    }
+  }
+
+  /* 広い画面では、演奏と現在の状態を左、設定を右に置く（操作しながら状態が見える） */
+  @media (min-width: 60rem) {
+    .waltz {
+      display: grid;
+      grid-template-columns: 17rem minmax(0, 1fr);
+      gap: 0 2rem;
+      max-width: none;
+    }
+
+    .waltz-side {
+      position: sticky;
+      top: 5rem;
+      align-self: start;
+    }
+
+    .waltz-controls {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
   }
 
   .waltz-orb {
@@ -515,7 +592,7 @@
 
   .waltz-now {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
     margin: 0;
     padding: 0.9rem 1rem;
@@ -523,9 +600,14 @@
     background: #000;
   }
 
+  /* コード名は1行を使って大きく見せ、残り4項目を2×2にそろえる */
+  .waltz-now > div:first-child {
+    grid-column: 1 / -1;
+  }
+
   .waltz-now dt {
     font-family: var(--font-pixel);
-    font-size: 0.5rem;
+    font-size: 0.625rem;
     color: var(--arc-cyan);
   }
 
@@ -552,6 +634,32 @@
     border-top: 2px dashed rgb(255 255 255 / 0.35);
   }
 
+  /* 設定は「音量」「演奏（すぐ反映）」「曲づくり（次の16小節から反映）」の3グループ。反映タイミングを見出しに載せる */
+  .waltz-group {
+    min-width: 0;
+    margin: 1.25rem 0 0;
+    padding: 0.75rem 0 0;
+    border: 0;
+    border-top: 2px dashed rgb(255 255 255 / 0.35);
+  }
+
+  .waltz-group:first-child {
+    margin-top: 0;
+  }
+
+  .waltz-group legend {
+    padding: 0 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--arc-cyan);
+  }
+
+  .waltz-group legend small {
+    margin-left: 0.75em;
+    font-size: 0.8125rem;
+    color: var(--arc-yellow);
+  }
+
   .waltz-controls label {
     display: grid;
     grid-template-columns: 8em 1fr;
@@ -571,13 +679,65 @@
     font: inherit;
   }
 
+  /* スライダー：つまみを大きくし、未選択側の溝も背景から浮かせる */
   .waltz-controls input[type="range"] {
     width: 100%;
-    accent-color: var(--arc-pink);
+    height: 2rem;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .waltz-controls input[type="range"]::-webkit-slider-runnable-track {
+    height: 0.5rem;
+    border: 2px solid rgb(255 255 255 / 0.55);
+    border-radius: 0.25rem;
+    background: #05030f;
+  }
+
+  .waltz-controls input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--arc-pink);
+  }
+
+  .waltz-controls input[type="range"]::-moz-range-track {
+    height: 0.5rem;
+    border: 2px solid rgb(255 255 255 / 0.55);
+    border-radius: 0.25rem;
+    background: #05030f;
+  }
+
+  .waltz-controls input[type="range"]::-moz-range-thumb {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--arc-pink);
+  }
+
+  .waltz-controls input[type="range"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   .waltz-controls input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
     accent-color: var(--arc-pink);
+  }
+
+  .waltz-controls label.waltz-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.25rem;
+    padding-left: calc(8em + 0.5rem);
+    font-size: 0.875rem;
   }
 
   .waltz-range-row {
@@ -587,24 +747,46 @@
   }
 
   .waltz-range-row output {
-    min-width: 3.2em;
+    min-width: 4.5em;
     text-align: right;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
     color: var(--arc-yellow);
   }
 
-  .waltz-hint {
-    margin: 0.75rem 0 0;
-    font-size: 0.8rem;
-    line-height: 1.8;
-    color: #b9bdf0;
+  /* 項目のすぐ下に置く補足。ラベル列の右にそろえる */
+  .waltz-help {
+    display: block;
+    margin: -0.15rem 0 0.5rem;
+    padding-left: calc(8em + 0.5rem);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: #c4c7f5;
   }
 
   @media (max-width: 30rem) {
+    .waltz {
+      padding: 1rem;
+    }
+
+    .waltz-transport {
+      margin-inline: -0.25rem;
+    }
+
     .waltz-controls label {
       grid-template-columns: 1fr;
       gap: 0.2rem;
       padding: 0.3rem 0;
+    }
+
+    .waltz-controls label.waltz-check,
+    .waltz-help {
+      padding-left: 0;
+    }
+
+    .waltz-controls select {
+      min-height: 2.75rem;
+      font-size: 1rem;
     }
   }
 
@@ -616,7 +798,8 @@
   }
 
   .ftr-arcade .ftr-copy {
-    color: #7b78a8;
+    font-size: 0.875rem;
+    color: #a09dcc;
   }
 
   .continue-box {
@@ -636,8 +819,10 @@
     color: var(--arc-yellow);
   }
 
+  /* 日本語を含むので、ピクセル書体ではなくドット書体で出す（書体にない文字が小さい代替書体に落ちるのを防ぐ） */
   .continue-link {
-    font-size: 0.625rem;
+    font-family: var(--font-dot);
+    font-size: 0.8125rem;
     color: #fff;
   }
 

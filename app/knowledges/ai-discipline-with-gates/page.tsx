@@ -46,7 +46,7 @@ export default function Page() {
       <Sheet id="s0" no="要点" title="先に結論（4つ）">
         <p>伝えたいのは設定ファイルではなく考え方です。腑に落ちれば、細部は読み飛ばして構いません。</p>
 
-        <Grid min="12.5rem">
+        <Grid min="12.5rem" cols={2}>
           <Takeaway n="1" title="お願いは、長い作業ほど効かなくなる" href="#s1">
             守ってほしい場面ほど守られない。規律の担保先を、AIの内側から外側へ移す。
           </Takeaway>
@@ -482,7 +482,7 @@ export default function Page() {
         <Quote>1ルール1hook ずつ。これだけです。</Quote>
 
         <h3>継続コスト（正直なところ）</h3>
-        <Grid min="10rem">
+        <Grid min="10rem" cols={2}>
           <Card>
             <Stat value="30〜60分" label="hook 1本の作成" />
           </Card>

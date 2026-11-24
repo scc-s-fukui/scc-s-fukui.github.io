@@ -43,7 +43,7 @@ export default function KnowledgesIndexPage() {
       <Header logoLabel="Knowledges" navItems={NAV_ITEMS} variant="board" />
 
       <main>
-        <section className="mx-auto max-w-content px-6 pt-14 pb-4">
+        <section className="mx-auto max-w-content px-3 pt-14 pb-4 sm:px-6">
           <div className="board-frame">
             <div className="cork">
               <div className="poster">

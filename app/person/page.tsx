@@ -19,11 +19,15 @@ export default function PersonHomePage() {
       <main>
         <section className="mx-auto max-w-content px-6 pt-16 pb-10">
           <div className="wall-panel">
-            <p className="panel-no">EXHIBIT No.01 ／ PORTFOLIO</p>
+            <p className="panel-no">
+              <span>EXHIBIT No.01</span>
+              <span aria-hidden="true">／</span>
+              <span>PORTFOLIO</span>
+            </p>
             <h1 className="panel-title">S.Fukui</h1>
             <p className="panel-lead">
               基幹システム開発を中心に、SE補助からプロジェクトリーダーまで幅広く経験。
-              <br />
+              <br className="hidden sm:block" />
               直近ではAI駆動開発の導入にも取り組んでいます。
             </p>
             <Link href="/person/works/" className="route-sign">

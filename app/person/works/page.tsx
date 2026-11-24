@@ -37,7 +37,7 @@ export default function PersonWorksPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-content px-6 pt-4 pb-12">
+        <section className="mx-auto max-w-content px-4 pt-4 pb-12 sm:px-6">
           <div className="crt-room">
             <div className="pipe" aria-hidden="true" />
             <svg className="crt-cables" viewBox="0 0 640 80" preserveAspectRatio="none" aria-hidden="true">
@@ -76,7 +76,14 @@ export default function PersonWorksPage() {
                         ))}
                       </p>
                       <h2 className="crt-title">{work.title}</h2>
-                      <p className="crt-desc">{work.desc}</p>
+                      {work.desc
+                        .split("\n")
+                        .filter((line) => line.trim() !== "")
+                        .map((line) => (
+                          <p className="crt-desc" key={line}>
+                            {line}
+                          </p>
+                        ))}
                     </div>
                   </div>
                   <div className="crt-base" aria-hidden="true">

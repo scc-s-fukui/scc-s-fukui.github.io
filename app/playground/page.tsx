@@ -79,16 +79,17 @@ export default function PlaygroundPage() {
 
         <section className="mx-auto max-w-content px-6 pb-4">
           <h2 className="stage-heading">― STAGE SELECT ―</h2>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-6">
-            <Link href="/playground/waltz-loop/" className="cartridge" aria-label="STAGE 1-2 エンドレス・ワルツ">
+          <div className="mx-auto grid max-w-176 grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-6">
+            <Link href="/playground/waltz-loop/" className="cartridge">
               <div className="cartridge-label">
                 STAGE 1-2
                 <b>WALTZ</b>
+                <span className="block font-dot text-sm leading-normal tracking-wider text-ink">エンドレス・ワルツ</span>
                 PLAY ▶
               </div>
             </Link>
             {LOCKED_STAGES.map((stage) => (
-              <div className="cartridge" key={stage} aria-label={`STAGE ${stage} 準備中`}>
+              <div className="cartridge" role="group" key={stage} aria-label={`STAGE ${stage} 準備中`}>
                 <div className="cartridge-label">
                   STAGE {stage}
                   <b>???</b>

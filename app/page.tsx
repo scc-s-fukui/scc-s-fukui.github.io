@@ -26,14 +26,14 @@ export default function PortalPage() {
           </div>
           <p className="museum-lead">
             実績紹介・技術共有・技術検証をフォルダ単位で公開しています。
-            <br />
+            <br className="hidden sm:block" />
             それぞれ下記から移動してください。
           </p>
         </section>
 
         <section className="mx-auto max-w-content px-6 py-12">
           <h2 className="museum-heading">― 展示室のご案内 ―</h2>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-8">
+          <div className="mx-auto grid max-w-sm grid-cols-1 gap-8 md:max-w-none md:grid-cols-3">
             {ROOMS.map((room) => (
               <Link className="exhibit" href={room.href} key={room.href}>
                 <div className="exhibit-case">

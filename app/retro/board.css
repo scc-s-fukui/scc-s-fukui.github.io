@@ -70,7 +70,7 @@
 
   .cork {
     position: relative;
-    padding: 2.5rem 1.75rem 2.25rem;
+    padding: 2.5rem clamp(0.75rem, 3vw, 1.75rem) 2.25rem;
     border-radius: 0.25rem;
     background:
       radial-gradient(circle at 20% 30%, rgb(110 70 30 / 0.55) 0 1.2px, transparent 1.8px),
@@ -109,7 +109,7 @@
     position: relative;
     margin: 0 auto 2.5rem;
     max-width: 30rem;
-    padding: 1.4rem 1.5rem 1.2rem;
+    padding: 1.4rem clamp(0.75rem, 4vw, 1.5rem) 1.2rem;
     background: #fbf3dc;
     text-align: center;
     transform: rotate(-0.8deg);
@@ -117,14 +117,20 @@
   }
 
   .poster-frame {
-    padding: 0.9rem 1rem;
+    padding: 0.9rem clamp(0.6rem, 3vw, 1rem);
     border: 3px double #7a1d1d;
+  }
+
+  .poster-title,
+  .poster-sub,
+  .note-title {
+    text-wrap: balance;
   }
 
   .poster-eyebrow {
     margin: 0 0 0.4rem;
     font-family: var(--font-pixel);
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
     letter-spacing: 0.25em;
     color: #8a6a3a;
   }
@@ -169,6 +175,17 @@
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     gap: 2.4rem 2rem;
     align-items: start;
+  }
+
+  /* 広い画面では2列に固定する（幅の境界で3列になって貼り紙が孤立するのを避ける） */
+  @media (min-width: 48rem) {
+    .notes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .notes .sticky-note {
+      align-self: center;
+    }
   }
 
   .note {
@@ -234,6 +251,7 @@
     margin: 0.6rem 0 0.9rem;
     font-size: 0.875rem;
     line-height: 26px;
+    text-wrap: pretty;
   }
 
   .note-more {
@@ -278,7 +296,13 @@
   }
 
   .ftr-board .ftr-copy {
-    color: #b8a487;
+    font-size: 0.875rem;
+    color: #cdbb9f;
+  }
+
+  .theme-board :is(a, button):focus-visible {
+    outline: 3px solid #ffd23f;
+    outline-offset: 4px;
   }
 
   .board-back {

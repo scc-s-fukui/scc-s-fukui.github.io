@@ -80,7 +80,7 @@ export default function Header({ logoLabel, logoHref = "/", navItems, variant = 
         {navItems && navItems.length > 0 && (
           <>
             <button
-              className="hdr-burger flex flex-col gap-1 p-2 md:hidden"
+              className="hdr-burger flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 md:hidden"
               aria-label="メニューを開閉"
               aria-expanded={isOpen}
               onClick={() => setIsOpen((open) => !open)}
@@ -93,7 +93,7 @@ export default function Header({ logoLabel, logoHref = "/", navItems, variant = 
               className={`${isOpen ? "flex" : "hidden"} ${s.panel} absolute inset-x-0 top-16 flex-col gap-0 md:static md:flex md:flex-row md:gap-6`}
             >
               {navItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
                 return (
                   <Link
                     key={item.href}
