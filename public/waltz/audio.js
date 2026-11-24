@@ -106,6 +106,14 @@ export function createAudio() {
   analyser.fftSize = 2048;
   const samples = new Float32Array(analyser.fftSize);
 
+  // ドラムは低音が残響で濁らないよう、残響への送りを小さくした別の経路にする
+  const drumBus = ctx.createGain();
+  const drumSend = ctx.createGain();
+  drumSend.gain.value = 0.25;
+  drumBus.connect(dry);
+  drumBus.connect(drumSend);
+  drumSend.connect(reverb);
+
   bus.connect(dry);
   bus.connect(reverb);
   reverb.connect(wet);
@@ -160,6 +168,64 @@ export function createAudio() {
       band.disconnect();
       gain.disconnect();
     };
+  }
+
+  // 短いノイズを帯域で切り出して鳴らす（ハイハット・ブラシ・バスドラムのアタックの共通部分）
+  function playNoise(time, { type, freq, q, attack, tau, peak, length }) {
+    const source = ctx.createBufferSource();
+    source.buffer = noise;
+    const filter = ctx.createBiquadFilter();
+    filter.type = type;
+    filter.frequency.value = freq;
+    filter.Q.value = q;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.linearRampToValueAtTime(peak, time + attack);
+    gain.gain.setTargetAtTime(0, time + attack, tau);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(drumBus);
+    source.start(time, Math.random() * 0.5);
+    source.stop(time + length);
+    source.onended = () => {
+      source.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  // 短い音程つきの打撃（バスドラムの胴鳴り）。周波数を f0 → f1 へ素早く下げる
+  function playThump(time, { type, f0, f1, drop, tau, peak, length }) {
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    osc.frequency.setValueAtTime(f0, time);
+    osc.frequency.exponentialRampToValueAtTime(f1, time + drop);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(peak, time);
+    gain.gain.setTargetAtTime(0, time, tau);
+    osc.connect(gain);
+    gain.connect(drumBus);
+    osc.start(time);
+    osc.stop(time + length);
+    osc.onended = () => {
+      osc.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  // ドラム: kick = 低く丸いバスドラム / brush = 短く切るブラシ / hat = 細かいハイハット
+  function playDrum({ time, voice, vel }) {
+    if (voice === 'kick') {
+      // 低い胴鳴り（正弦波）に、倍音を含む三角波の層とアタックのノイズを足す。低音が出ない小さなスピーカーでも聞こえるように
+      playThump(time, { type: 'sine', f0: 140, f1: 55, drop: 0.1, tau: 0.12, peak: vel * 1.3, length: 0.8 });
+      playThump(time, { type: 'triangle', f0: 180, f1: 90, drop: 0.06, tau: 0.06, peak: vel * 0.6, length: 0.4 });
+      playNoise(time, { type: 'bandpass', freq: 1800, q: 0.7, attack: 0.001, tau: 0.006, peak: vel * 0.3, length: 0.1 });
+    } else if (voice === 'brush') {
+      // ブラシ: 広い帯域のノイズを、リムショット並みに短く（ほぼ「サッ」と一瞬）切る
+      playNoise(time, { type: 'bandpass', freq: 4500, q: 0.5, attack: 0.006, tau: 0.025, peak: vel * 0.9, length: 0.2 });
+    } else if (voice === 'hat') {
+      playNoise(time, { type: 'highpass', freq: 7500, q: 0.7, attack: 0.002, tau: 0.02, peak: vel * 0.5, length: 0.2 });
+    }
   }
 
   function play({ time, midi, dur, vel, voice }) {
@@ -243,6 +309,7 @@ export function createAudio() {
   return {
     ctx,
     play,
+    playDrum,
     resume: () => ctx.resume(),
     // 切り替えは、これから予約する音から効く
     setMelodyInstrument(instrument) {

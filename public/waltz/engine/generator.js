@@ -3,6 +3,7 @@
 import { UNITS_PER_BAR as U, chordInfo, pitchOf, snapToChord } from './theory.js';
 import { getMotifOr } from './motifs.js';
 import { MOOD_STYLE } from './direction.js';
+import { drumsForBar } from './drums.js';
 
 export const PHRASE_BARS = 8;
 export const PERIOD_BARS = PHRASE_BARS * 2;
@@ -277,13 +278,20 @@ function buildPhrase(direction, kind, rng) {
   const opsA = pickOps(count, direction.density, false, rng);
   const opsB = pickOps(count, direction.density, true, rng);
 
-  // 2小節ずつ: 提示 → 同じ断片を別の高さ・装飾で → 対比 → 終止へ向かう
   const tune = { key, mode };
-  placeNotes(bars, 0, realize(motifA, {}, rng, tune));
-  placeNotes(bars, 2, realize(motifA, { shift: rng.pick([-1, 1, 2]), ops: opsA }, rng, tune));
-  placeNotes(bars, 4, realize(motifB, { ops: opsB }, rng, tune));
-  const lead = realize(motifA, { shift: kind === 'half' ? rng.pick([0, 1]) : rng.pick([0, -1]), ops: opsA }, rng, tune);
-  placeNotes(bars, 6, lead.filter((n) => n.u < U));
+  const wholePhrase = [motifA, motifB].find((m) => m.bars === PHRASE_BARS);
+  if (wholePhrase) {
+    // 1フレーズ分の断片（階段の上り下りなど）: 8小節目の手前までをそのまま置く。変形は親しみやすさに応じて
+    const body = realize(wholePhrase, { ops: opsA }, rng, tune);
+    placeNotes(bars, 0, body.filter((n) => n.u < (PHRASE_BARS - 1) * U));
+  } else {
+    // 2小節ずつ: 提示 → 同じ断片を別の高さ・装飾で → 対比 → 終止へ向かう
+    placeNotes(bars, 0, realize(motifA, {}, rng, tune));
+    placeNotes(bars, 2, realize(motifA, { shift: rng.pick([-1, 1, 2]), ops: opsA }, rng, tune));
+    placeNotes(bars, 4, realize(motifB, { ops: opsB }, rng, tune));
+    const lead = realize(motifA, { shift: kind === 'half' ? rng.pick([0, 1]) : rng.pick([0, -1]), ops: opsA }, rng, tune);
+    placeNotes(bars, 6, lead.filter((n) => n.u < U));
+  }
 
   const prevDeg = lastDegree(bars[6]) ?? 5;
   if (kind === 'full') {
@@ -318,6 +326,7 @@ function finalize(bars, direction, kind, rng) {
       melody,
       pattern,
       accomp: accompany(bar.chord, style, pattern, rng),
+      drums: drumsForBar({ barInPeriod: i + (kind === 'full' ? PHRASE_BARS : 0), density: direction.density }),
     };
   });
 }

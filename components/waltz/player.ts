@@ -6,7 +6,8 @@
 export type Mood = "calm" | "bright" | "tender" | "nostalgic";
 export type TimeSlot = "morning" | "day" | "evening" | "night";
 export type Instrument = "piano" | "flute" | "musicbox" | "xylo" | "glock" | "glockHigh" | "harp";
-export type ProgressionMode = "standard" | "canon";
+export type ProgressionMode = "standard" | "canon" | "major" | "minor";
+export type MotifLink = "free" | "same";
 
 export type Direction = {
   mood: Mood;
@@ -21,13 +22,15 @@ export type Direction = {
 };
 
 type Note = { u: number; dur: number; midi: number; vel: number; voice?: string };
-type PeriodBar = { melody: Note[]; accomp: Note[]; chordName: string; barInPeriod: number };
+type DrumHit = { u: number; voice: string; vel: number };
+type PeriodBar = { melody: Note[]; accomp: Note[]; drums?: DrumHit[]; chordName: string; barInPeriod: number };
 type QueuedBar = PeriodBar & { direction: Direction; slot: TimeSlot };
 
 type Rng = { next(): number };
 type Audio = {
   ctx: AudioContext;
   play(note: { time: number; midi: number; dur: number; vel: number; voice: string }): void;
+  playDrum(hit: { time: number; voice: string; vel: number }): void;
   resume(): Promise<void>;
   setMelodyInstrument(instrument: string): void;
   setVolume(volume: number): void;
@@ -46,16 +49,19 @@ export type WaltzEngine = {
   barTempoFactor(barInPeriod: number, setting: number): number;
   swayScale(setting: number): number;
   swingSpan(u: number, dur: number, setting: number): { start: number; dur: number };
+  swingUnit(u: number, setting: number): number;
+  applyProgressionSetting(direction: Direction, setting: ProgressionMode): Direction;
+  applyMotifLink(direction: Direction, mode: MotifLink): Direction;
   timeSlotOf(hour: number): TimeSlot;
   clamp(value: number, lo: number, hi: number): number;
   TIME_PROFILES: Record<TimeSlot, { level: number; brightness: number }>;
   MOOD_STYLE: Record<Mood, { warmth: number }>;
-  PROGRESSION_MODES: string[];
 };
 
 export type WaltzSettings = {
   volume: number; // 0〜100
   melody: number; // 主旋律の音量 0〜100
+  drums: number; // ドラムの音量 0〜100（0 でなし）
   sway: number; // 揺らぎ（%）
   swing: number; // スウィング（%）
   instrument: Instrument;
@@ -64,6 +70,7 @@ export type WaltzSettings = {
   slot: TimeSlot | "auto";
   familiarity: "auto" | number; // 原曲の面影 0〜1
   progression: ProgressionMode;
+  motifLink: MotifLink;
 };
 
 /** 画面に出す、いま鳴っている小節の情報 */
@@ -139,8 +146,8 @@ export function createWaltzPlayer(
     const out = { ...base };
     if (s.mood !== "auto") out.mood = s.mood;
     if (s.familiarity !== "auto") out.familiarity = s.familiarity;
-    out.progression = engine.PROGRESSION_MODES.includes(s.progression) ? s.progression : "standard";
-    return out;
+    const withProgression = engine.applyProgressionSetting(out, s.progression);
+    return { ...withProgression, motifB: engine.applyMotifLink(withProgression, s.motifLink).motifB };
   }
 
   function buildNextPeriod() {
@@ -177,6 +184,15 @@ export function createWaltzPlayer(
         vel: n.vel * profile.level * (s.melody / 100),
         voice: "melody",
       });
+    }
+    if (s.drums > 0) {
+      for (const n of bar.drums ?? []) {
+        a.playDrum({
+          time: t0 + engine.swingUnit(n.u, s.swing) * unit + jitter(0.003),
+          voice: n.voice,
+          vel: n.vel * profile.level * (s.drums / 100),
+        });
+      }
     }
     for (const n of bar.accomp) {
       const at = engine.swingSpan(n.u, n.dur, s.swing);

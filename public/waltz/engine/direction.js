@@ -174,6 +174,49 @@ export function randomDirection(prev, slot, rng) {
   };
 }
 
+// 作業タイマーの位相に合わせた方針の調整。集中中は音数を減らして静かに、休憩中は少し明るく軽やかにする。
+// 雰囲気は「おだやか/やさしい」（集中）・「あかるい/なつかしい」（休憩）のどちらかに寄せ、音数とテンポは決まった幅だけずらす。
+// 画面で雰囲気やテンポを固定している場合は、呼び出し側でこのあとに上書きする。
+export const PHASE_PROFILES = {
+  focus: { moods: { calm: 'calm', tender: 'tender', bright: 'calm', nostalgic: 'tender' }, densityDelta: -1, tempoDelta: -4 },
+  break: { moods: { calm: 'bright', tender: 'nostalgic', bright: 'bright', nostalgic: 'nostalgic' }, densityDelta: 1, tempoDelta: 6 },
+};
+
+// phase が未指定・不明なら方針をそのまま返す。元の方針は書き換えない。
+export function applyPhase(direction, phase) {
+  const profile = PHASE_PROFILES[phase];
+  if (!profile) return direction;
+  return {
+    ...direction,
+    mood: profile.moods[direction.mood] ?? direction.mood,
+    density: clamp(direction.density + profile.densityDelta, 1, 5),
+    tempo: clamp(direction.tempo + profile.tempoDelta, TEMPO_MIN, TEMPO_MAX),
+  };
+}
+
+// 進行モード（画面の選択）: 'standard' = ワルツの定型の進行、'canon' = カノン進行特化、
+// 'major' = 長調特化、'minor' = 短調特化（進行は定型で、調の長短だけ固定する）
+export const PROGRESSION_SETTINGS = ['standard', 'canon', 'major', 'minor'];
+
+// 画面の進行モードを方針に反映する。未指定・不明な値は 'standard'。元の方針は書き換えない。
+// 長調・短調の特化は、LLM・ルールが選んだ長短を上書きする（調そのものは方針のまま）。
+export function applyProgressionSetting(direction, setting) {
+  const chosen = PROGRESSION_SETTINGS.includes(setting) ? setting : 'standard';
+  return {
+    ...direction,
+    progression: chosen === 'canon' ? 'canon' : 'standard',
+    mode: chosen === 'major' || chosen === 'minor' ? chosen : direction.mode,
+  };
+}
+
+// 断片のつなぎ方: 'free' = 方針どおり（従来）、'same' = 前半（A）と後半（B）を同じ断片にする（例: メヌエット風 → メヌエット風）
+export const MOTIF_LINK_MODES = ['free', 'same'];
+
+// 'same' のとき、B を A と同じ断片にする。A は変えない。元の方針は書き換えない。
+export function applyMotifLink(direction, mode) {
+  return mode === 'same' ? { ...direction, motifB: direction.motifA } : direction;
+}
+
 // 外から来た値（LLMの出力・ブラウザからの入力）を安全な範囲に収める。fallback は必須。
 export function normalizeDirection(raw, fallback) {
   const src = raw && typeof raw === 'object' ? raw : {};

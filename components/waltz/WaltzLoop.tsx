@@ -6,6 +6,7 @@ import {
   loadWaltzEngine,
   type BarView,
   type Instrument,
+  type MotifLink,
   type Mood,
   type ProgressionMode,
   type TimeSlot,
@@ -18,6 +19,7 @@ const SETTINGS_KEY = "playground.waltz-loop.settings";
 const DEFAULT_SETTINGS: WaltzSettings = {
   volume: 60,
   melody: 70,
+  drums: 50,
   sway: 100,
   swing: 0,
   instrument: "piano",
@@ -26,6 +28,7 @@ const DEFAULT_SETTINGS: WaltzSettings = {
   slot: "auto",
   familiarity: "auto",
   progression: "standard",
+  motifLink: "free",
 };
 
 const TEMPO_RANGE = [40, 240] as const;
@@ -56,6 +59,17 @@ const FAMILIARITIES = [
   { value: "0.85", label: "濃いめ（原曲に近い）" },
 ];
 
+const PROGRESSIONS: { value: ProgressionMode; label: string }[] = [
+  { value: "standard", label: "おまかせ（ワルツの定型）" },
+  { value: "canon", label: "カノン進行特化" },
+  { value: "major", label: "長調特化" },
+  { value: "minor", label: "短調特化" },
+];
+const MOTIF_LINKS: { value: MotifLink; label: string }[] = [
+  { value: "free", label: "おまかせ" },
+  { value: "same", label: "同じ断片でつなぐ" },
+];
+
 const isOneOf = <T extends string>(value: unknown, list: readonly T[]): value is T =>
   typeof value === "string" && (list as readonly string[]).includes(value);
 
@@ -69,6 +83,7 @@ function normalizeSettings(raw: unknown): WaltzSettings {
   return {
     volume: num(src.volume, 0, 100, d.volume),
     melody: num(src.melody, 0, 100, d.melody),
+    drums: Math.round(num(src.drums, 0, 100, d.drums)),
     sway: num(src.sway, SWAY_RANGE[0], SWAY_RANGE[1], d.sway),
     swing: num(src.swing, SWING_RANGE[0], SWING_RANGE[1], d.swing),
     instrument: isOneOf(src.instrument, INSTRUMENTS.map((i) => i.value)) ? src.instrument : d.instrument,
@@ -76,7 +91,8 @@ function normalizeSettings(raw: unknown): WaltzSettings {
     mood: isOneOf(src.mood, ["auto", "calm", "bright", "tender", "nostalgic"] as const) ? src.mood : d.mood,
     slot: isOneOf(src.slot, SLOTS.map((s) => s.value)) ? src.slot : d.slot,
     familiarity: typeof src.familiarity === "number" ? num(src.familiarity, 0, 1, 0.5) : "auto",
-    progression: isOneOf(src.progression, ["standard", "canon"] as const) ? src.progression : d.progression,
+    progression: isOneOf(src.progression, PROGRESSIONS.map((p) => p.value)) ? src.progression : d.progression,
+    motifLink: isOneOf(src.motifLink, MOTIF_LINKS.map((m) => m.value)) ? src.motifLink : d.motifLink,
   };
 }
 
@@ -240,6 +256,20 @@ export default function WaltzLoop() {
           />
         </label>
         <label>
+          ドラムの音量
+          <span className="waltz-range-row">
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={settings.drums}
+              onChange={(e) => update("drums", Number(e.target.value))}
+            />
+            <output>{settings.drums === 0 ? "なし" : `${settings.drums}%`}</output>
+          </span>
+        </label>
+        <label>
           主旋律の楽器
           <select value={settings.instrument} onChange={(e) => update("instrument", e.target.value as Instrument)}>
             {INSTRUMENTS.map((i) => (
@@ -339,12 +369,25 @@ export default function WaltzLoop() {
         <label>
           進行モード
           <select value={settings.progression} onChange={(e) => update("progression", e.target.value as ProgressionMode)}>
-            <option value="standard">おまかせ（ワルツの定型）</option>
-            <option value="canon">カノン進行特化</option>
+            {PROGRESSIONS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          断片のつなぎ方
+          <select value={settings.motifLink} onChange={(e) => update("motifLink", e.target.value as MotifLink)}>
+            {MOTIF_LINKS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
           </select>
         </label>
         <p className="waltz-hint">
-          音量・楽器・テンポ・揺らぎ・スウィングは数秒以内に切り替わります。雰囲気・時間帯・面影・進行モードは、次の16小節から反映されます。
+          ドラムは、1拍目のバスドラムと2・3拍目の短く切るブラシで拍を支えます（音量0%でなし）。音量・ドラム・楽器・テンポ・揺らぎ・スウィングは数秒以内に切り替わります。進行モードの長調・短調特化は調の長短だけを固定し、「同じ断片でつなぐ」は前半と後半の旋律を同じ断片にします。雰囲気・時間帯・面影・進行モード・断片のつなぎ方は、次の16小節から反映されます。
         </p>
       </div>
     </div>
